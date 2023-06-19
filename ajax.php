@@ -121,7 +121,7 @@ case 'upload_part':
 			$savePathTemp = file_part_merge($hash, $chunks);
 			$real_hash = md5_file($savePathTemp);
 			$real_size = filesize($savePathTemp);
-			$result = $stor->savefile($hash, $savePathTemp);
+			$result = $stor->savefile($hash, $savePathTemp, minetype($ext));
 			if(!$result)exit('{"code":-1,"msg":"文件上传失败","error":"stor","errmsg":"'.$stor->errmsg().'"}');
 		}else{
 			$result = ['code'=>0, 'chunk'=>$chunk];
