@@ -32,12 +32,12 @@ class Ace implements IStorage { //AceStorage
 		return true;
 	}
 
-	public function upload($name,$tmpfile) {
+	public function upload($name, $tmpfile, $content_type = null) {
 		return $this->Storage->saveFile($name, $tmpfile);
 	}
 
-	public function savefile($name,$tmpfile) {
-		return $this->upload($name,$tmpfile);
+	public function savefile($name, $tmpfile, $content_type = null) {
+		return $this->upload($name, $tmpfile);
 	}
 
 	public function getinfo($name) {

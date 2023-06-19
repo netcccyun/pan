@@ -59,11 +59,7 @@ if($ispwd==1 && !empty($pwd)){
 		showresult(['code'=>-1, 'msg'=>'文件密码只能为字母和数字']);
 	}
 }
-$extension=explode('.',$name);
-if (($length = count($extension)) > 1) {
-	$ext = strtolower($extension[$length - 1]);
-}
-if(strlen($ext)>6)$ext='';
+$ext=get_file_ext($name);
 if($conf['type_block']){
 	$type_block = explode('|',$conf['type_block']);
 	if(in_array($ext,$type_block)){
@@ -88,7 +84,7 @@ if($row){
 	if(is_view($row['type']))$result['viewurl'] = $siteurl.'view.php/'.$hash.'.'.$row['type'];
 	showresult($result);
 }
-$result = $stor->upload($hash, $_FILES['file']['tmp_name']);
+$result = $stor->upload($hash, $_FILES['file']['tmp_name'], minetype($ext));
 if(!$result)showresult(['code'=>-1, 'msg'=>'文件上传失败', 'error'=>'stor']);
 $sds = $DB->exec("INSERT INTO `pre_file` (`name`,`type`,`size`,`hash`,`addtime`,`ip`,`hide`,`pwd`) values (:name,:type,:size,:hash,NOW(),:ip,:hide,:pwd)", [':name'=>$name, ':type'=>$ext, ':size'=>$size, ':hash'=>$hash, ':ip'=>$clientip, ':hide'=>$hide, ':pwd'=>$pwd]);
 if(!$sds)showresult(['code'=>-1, 'msg'=>'上传失败'.$DB->error(), 'error'=>'database']);

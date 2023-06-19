@@ -74,7 +74,7 @@ class Qiniu implements IStorage {
 		}
 	}
 
-	public function upload($name,$tmpfile) {
+	public function upload($name, $tmpfile, $content_type = null) {
         try {
 			$token = $this->auth->uploadToken($this->bucket);
 			$uploadMgr = new \Qiniu\Storage\UploadManager();
@@ -87,8 +87,8 @@ class Qiniu implements IStorage {
 		}
 	}
 
-	public function savefile($name,$tmpfile) {
-		return $this->upload($name,$tmpfile);
+	public function savefile($name, $tmpfile, $content_type = null) {
+		return $this->upload($name, $tmpfile);
 	}
 
 	public function getinfo($name) {

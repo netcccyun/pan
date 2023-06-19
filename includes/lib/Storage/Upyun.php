@@ -54,9 +54,10 @@ class Upyun implements IStorage {
 		}
 	}
 
-	public function upload($name,$tmpfile) {
+	public function upload($name, $tmpfile, $content_type = null) {
+		$params['Content-Type'] = $content_type;
         try {
-			$this->client->write($this->filepath.$name, fopen($tmpfile, 'rb'));
+			$this->client->write($this->filepath.$name, fopen($tmpfile, 'rb'), $params);
 			return true;
         } catch(\Exception $e) {
 			$this->errmsg = __FUNCTION__ . ": " . $e->getMessage();
@@ -65,8 +66,8 @@ class Upyun implements IStorage {
 		}
 	}
 	
-	public function savefile($name,$tmpfile) {
-		return $this->upload($name,$tmpfile);
+	public function savefile($name, $tmpfile, $content_type = null) {
+		return $this->upload($name, $tmpfile, $content_type);
 	}
 
 	public function getinfo($name) {

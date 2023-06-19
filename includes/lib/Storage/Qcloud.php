@@ -66,7 +66,7 @@ class Qcloud implements IStorage {
 		}
 	}
 
-	public function upload($name,$tmpfile) {
+	public function upload($name, $tmpfile, $content_type = null) {
         try {
 			$this->cosClient->upload($this->bucket, $this->filepath.$name, fopen($tmpfile, 'rb'));
 			return true;
@@ -77,8 +77,8 @@ class Qcloud implements IStorage {
 		}
 	}
 
-	public function savefile($name,$tmpfile) {
-		return $this->upload($name,$tmpfile);
+	public function savefile($name, $tmpfile, $content_type = null) {
+		return $this->upload($name, $tmpfile);
 	}
 
 	public function getinfo($name) {

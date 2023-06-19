@@ -14,9 +14,9 @@ interface IStorage
 
     function downfile($name, $range = false);
 
-    function upload($name,$tmpfile);
+    function upload($name, $tmpfile, $content_type = null);
 
-    function savefile($name,$tmpfile);
+    function savefile($name, $tmpfile, $content_type = null);
 
     function getinfo($name);
 

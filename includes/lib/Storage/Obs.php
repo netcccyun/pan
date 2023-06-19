@@ -77,7 +77,7 @@ class Obs implements IStorage {
 		}
 	}
 
-	public function upload($name,$tmpfile) {
+	public function upload($name, $tmpfile, $content_type = null) {
         try {
 			$this->obsClient->putObject([
 				'Bucket' => $this->bucket,
@@ -92,8 +92,8 @@ class Obs implements IStorage {
 		}
 	}
 
-	public function savefile($name,$tmpfile) {
-		return $this->upload($name,$tmpfile);
+	public function savefile($name, $tmpfile, $content_type = null) {
+		return $this->upload($name, $tmpfile);
 	}
 
 	public function getinfo($name) {

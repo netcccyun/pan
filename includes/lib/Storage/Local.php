@@ -50,12 +50,12 @@ class Local implements IStorage {
 		return true;
 	}
 
-	public function upload($name,$tmpfile) {
-		return move_uploaded_file($tmpfile,$this->path.$name);
+	public function upload($name, $tmpfile, $content_type = null) {
+		return move_uploaded_file($tmpfile, $this->path.$name);
 	}
 
-	public function savefile($name,$tmpfile) {
-		return rename($tmpfile,$this->path.$name);
+	public function savefile($name, $tmpfile, $content_type = null) {
+		return rename($tmpfile, $this->path.$name);
 	}
 
 	public function getinfo($name) {

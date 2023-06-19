@@ -111,6 +111,7 @@ case 'upload_part':
 	}
 	if(!preg_match('/^[0-9a-z]{32}$/i', $hash))exit('{"code":-1,"msg":"hash error"}');
 	$chunks = intval($_SESSION['upload']['chunks']);
+	$ext = $_SESSION['upload']['ext'];
 	if($chunks > 1){
 		$tempFile = sys_get_temp_dir() . '/' . $hash. '.part'.$chunk;
 		if(!move_uploaded_file($_FILES['file']['tmp_name'], $tempFile)){
@@ -129,7 +130,7 @@ case 'upload_part':
 	}else{
 		$real_hash = md5_file($_FILES['file']['tmp_name']);
 		$real_size = filesize($_FILES['file']['tmp_name']);
-		$result = $stor->upload($hash, $_FILES['file']['tmp_name']);
+		$result = $stor->upload($hash, $_FILES['file']['tmp_name'], minetype($ext));
 		if(!$result)exit('{"code":-1,"msg":"文件上传失败","error":"stor","errmsg":"'.$stor->errmsg().'"}');
 	}
 
@@ -142,7 +143,6 @@ case 'upload_part':
 	}
 
 	$name = $_SESSION['upload']['name'];
-	$ext = $_SESSION['upload']['ext'];
 	$hide = $_SESSION['upload']['hide'];
 	$pwd = $_SESSION['upload']['pwd'];
 
