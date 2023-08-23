@@ -144,6 +144,7 @@ class Qcloud implements IStorage {
 
 	public function getDownUrl($name, $filename, $content_type = null){
 		global $conf;
+		$filename = '"'.$filename.'"; filename*=utf-8\'\''.rawurlencode($filename);
 		if(!$content_type){
 			$options = [
 				'ResponseContentType' => 'application/force-download',

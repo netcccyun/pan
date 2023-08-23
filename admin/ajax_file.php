@@ -73,16 +73,26 @@ case 'delFile':
 	else exit('{"code":-1,"msg":"删除文件失败['.$DB->error().']"}');
 break;
 case 'operation':
+	$status=intval($_POST['status']);
 	$checkbox=$_POST['checkbox'];
 	if(!$checkbox)exit('{"code":-1,"msg":"未选中文件"}');
 	$i=0;
+	if($status == 2)$opname = '解封';
+	elseif($status == 1)$opname = '封禁';
+	else $opname = '删除';
 	foreach($checkbox as $id){
-		$hash=$DB->getColumn("select hash from pre_file where id='$id' limit 1");
-		$stor->delete($hash);
-		$DB->exec("DELETE FROM pre_file WHERE id='$id'");
+		if($status == 0){
+			$hash=$DB->getColumn("select hash from pre_file where id='$id' limit 1");
+			$stor->delete($hash);
+			$DB->exec("DELETE FROM pre_file WHERE id='$id'");
+		}elseif($status == 1){
+			$DB->exec("UPDATE pre_file SET `block`=1 WHERE id='$id'");
+		}elseif($status == 2){
+			$DB->exec("UPDATE pre_file SET `block`=0 WHERE id='$id'");
+		}
 		$i++;
 	}
-	exit('{"code":0,"msg":"成功删除'.$i.'个文件"}');
+	exit('{"code":0,"msg":"成功'.$opname.$i.'个文件"}');
 break;
 case 'getFileInfo':
 	$id=intval($_GET['id']);

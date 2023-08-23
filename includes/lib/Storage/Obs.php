@@ -157,6 +157,7 @@ class Obs implements IStorage {
 	public function getDownUrl($name, $filename, $content_type = null){
 		global $conf;
 		$expires = 315360000;
+		$filename = '"'.$filename.'"; filename*=utf-8\'\''.rawurlencode($filename);
 		if(!$content_type){
 			$options = [
 				'response-content-type' => 'application/force-download',

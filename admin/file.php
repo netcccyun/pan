@@ -97,7 +97,7 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 			</div>
 			<div class="btn-group" role="group">
 				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">批量操作 <span class="caret"></span></button>
-				<ul class="dropdown-menu"><li><a href="javascript:operation()"><i class="fa fa-trash"></i> 删除</a></li></ul>
+				<ul class="dropdown-menu"><li><a href="javascript:operation(0)"><i class="fa fa-trash"></i>  删除</a></li><li><a href="javascript:operation(1)"><i class="fa fa-times-circle"></i>  封禁</a></li><li><a href="javascript:operation(2)"><i class="fa fa-check-circle"></i>  解封</a></li></ul>
 			</div>
 		</form>
 		<table id="listTable">
@@ -183,11 +183,12 @@ $(document).ready(function(){
 				field: 'block',
 				title: '状态',
 				formatter: function(value, row, index) {
-					switch(value){
-						case '2': return '<a href="javascript:setBlock('+row.id+',0)" class="btn btn-xs btn-warning">待审</a>';break;
-						case '1': return '<a href="javascript:setBlock('+row.id+',0)" class="btn btn-xs btn-danger">封禁</a>';break;
-						case '0': return '<a href="javascript:setBlock('+row.id+',1)" class="btn btn-xs btn-success">正常</a>';break;
-						default: return '';break;
+					if(value == '2'){
+						return '<a href="javascript:setBlock('+row.id+',0)" class="btn btn-xs btn-warning">待审</a>';
+					}else if(value == '1'){
+						return '<a href="javascript:setBlock('+row.id+',0)" class="btn btn-xs btn-danger">封禁</a>';
+					}else{
+						return '<a href="javascript:setBlock('+row.id+',1)" class="btn btn-xs btn-success">正常</a>';
 					}
 				}
 			},
@@ -311,40 +312,35 @@ function delFile(id) {
 	  layer.close(confirmobj);
 	});
 }
-function operation(){
+function operation(status){
 	var selected = $('#listTable').bootstrapTable('getSelections');
 	if(selected.length == 0){
 		layer.msg('未选中文件', {time:1500});return;
 	}
+	if(status == 0 && !confirm('确定要删除已选中的'+selected.length+'个文件吗？')) return;
 	var checkbox = new Array();
 	$.each(selected, function(key, item){
 		checkbox.push(item.id)
 	})
-	var confirmobj = layer.confirm('确定要删除已选中的'+selected.length+'个文件吗？', {
-	  btn: ['确定','取消'], icon: 0
-	}, function(){
-		var ii = layer.load(2, {shade:[0.1,'#fff']});
-		$.ajax({
-			type : 'POST',
-			url : 'ajax_file.php?act=operation',
-			data : {checkbox: checkbox},
-			dataType : 'json',
-			success : function(data) {
-				layer.close(ii);
-				if(data.code == 0){
-					searchSubmit();
-					layer.alert(data.msg, {icon:1});
-				}else{
-					layer.alert(data.msg, {icon:2});
-				}
-			},
-			error:function(data){
-				layer.msg('请求超时');
+	var ii = layer.load(2, {shade:[0.1,'#fff']});
+	$.ajax({
+		type : 'POST',
+		url : 'ajax_file.php?act=operation',
+		data : {checkbox: checkbox, status: status},
+		dataType : 'json',
+		success : function(data) {
+			layer.close(ii);
+			if(data.code == 0){
 				searchSubmit();
+				layer.alert(data.msg, {icon:1});
+			}else{
+				layer.alert(data.msg, {icon:2});
 			}
-		});
-	}, function(){
-	  layer.close(confirmobj);
+		},
+		error:function(data){
+			layer.msg('请求超时');
+			searchSubmit();
+		}
 	});
 }
 function showfile(id, type) {
@@ -380,6 +376,7 @@ function showfile(id, type) {
 	});
 }
 function showimage(resourcesUrl){
+	var ii = layer.load(2, {shade:[0.1,'#fff']});
     var img = new Image();
     img.onload = function () {//避免图片还未加载完成无法获取到图片的大小。
         //避免图片太大，导致弹出展示超出了网页显示访问，所以图片大于浏览器时下窗口可视区域时，进行等比例缩小。
@@ -395,18 +392,23 @@ function showimage(resourcesUrl){
         var imgHeight = img.height * rate; //获取图片高度
         var imgWidth = img.width * rate; //获取图片宽度
 
-        var imgHtml = "<img src='" + resourcesUrl + "' width='" + imgWidth + "px' height='" + imgHeight + "px'/>";
+		var imgHtml = '<div id="showimg" style="width:'+imgWidth+'px; height:'+imgHeight+'px;"></div>';
+		img.style = 'width:100%';
         //弹出层
+		layer.close(ii);
         layer.open({
             type:1,
             shade: 0.6,
             title: false,
             area: ['auto', 'auto'],
             shadeClose: true,
-            content: imgHtml
+            content: imgHtml,
+			success: function(){
+				$("#showimg").append(img)
+			}
         });
     }
-	img.onerror = function(){ layer.msg('图片加载错误'); }
+	img.onerror = function(){ layer.close(ii);layer.msg('图片加载错误'); }
     img.src = resourcesUrl;
 }
 
