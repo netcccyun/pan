@@ -46,7 +46,7 @@ include SYSTEM_ROOT.'header.php';
         <h2><?php echo $htext?>
         <?php if($conf['filesearch']==1){?><span class="searchbox">
             <form class="form-inline" action="./" method="GET">
-                <?php if(isset($_GET['m'])){?><input name="m" type="hidden" value="<?php echo $_GET['m']?>"><?php }?>
+                <?php if(isset($_GET['m'])){?><input name="m" type="hidden" value="<?php echo htmlspecialchars($_GET['m'])?>"><?php }?>
 				<input name="kw" class="form-control" type="search" placeholder="请输入搜索关键字" value="<?php echo $kw?>" required="">
 				<button class="btn btn-default btn-raised btn-sm" type="submit"><i class="fa fa-search" aria-hidden="true"></i> 搜索</button>
 			</form>
@@ -125,9 +125,9 @@ echo '<li class="disabled"><a>尾页</a></li>';
     </div>
 <?php include SYSTEM_ROOT.'footer.php';?>
 <?php if(!empty($conf['gonggao'])){?>
-<link href="//cdn.staticfile.org/snackbarjs/1.1.0/snackbar.min.css" rel="stylesheet">
-<script src="//cdn.staticfile.org/snackbarjs/1.1.0/snackbar.min.js"></script>
-<script src="//cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<link href="//cdn.staticfile.net/snackbarjs/1.1.0/snackbar.min.css" rel="stylesheet">
+<script src="//cdn.staticfile.net/snackbarjs/1.1.0/snackbar.min.js"></script>
+<script src="//cdn.staticfile.net/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 <script>
 $(function() {
     if(!$.cookie('gonggao')){

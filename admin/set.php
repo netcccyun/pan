@@ -437,7 +437,7 @@ $("select[name='green_check_terrorism']").change(function(){
 ?>
     </div>
   </div>
-<script src="//cdn.staticfile.org/layer/2.3/layer.js"></script>
+<script src="//cdn.staticfile.net/layer/2.3/layer.js"></script>
 <script>
 var items = $("select[default]");
 for (i = 0; i < items.length; i++) {

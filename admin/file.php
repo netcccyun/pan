@@ -92,6 +92,9 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 			<select id="dstatus" name="dstatus" class="form-control"><option value="-1">全部状态</option><option value="0">正常文件</option><option value="1">已屏蔽文件</option><option value="2">待审核文件</option></select>
 		    </div>
 			<div class="form-group">
+			<select id="orderby" name="orderby" class="form-control"><option value="0">默认排序</option><option value="1">按下载量排序</option></select>
+		    </div>
+			<div class="form-group">
 				<button class="btn btn-primary" type="submit"><i class="fa fa-search"></i> 搜索</button>
 				<a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-repeat"></i> 重置</a>
 			</div>
@@ -104,9 +107,9 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 	  	</table>
     </div>
   </div>
-<script src="//cdn.staticfile.org/layer/3.1.1/layer.min.js"></script>
-<script src="//cdn.staticfile.org/bootstrap-table/1.20.2/bootstrap-table.min.js"></script>
-<script src="//cdn.staticfile.org/bootstrap-table/1.20.2/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
+<script src="//cdn.staticfile.net/layer/3.1.1/layer.min.js"></script>
+<script src="//cdn.staticfile.net/bootstrap-table/1.20.2/bootstrap-table.min.js"></script>
+<script src="//cdn.staticfile.net/bootstrap-table/1.20.2/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
 <script src="../assets/js/custom.js"></script>
 <script>
 $(document).ready(function(){

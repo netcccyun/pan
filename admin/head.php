@@ -8,14 +8,14 @@
   <meta name="renderer" content="webkit">
   <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;">
   <title><?php echo $title ?></title>
-  <link href="//cdn.staticfile.org/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="//cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+  <link href="//cdn.staticfile.net/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="//cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
   <link href="../assets/css/bootstrap-table.css?v=1" rel="stylesheet"/>
-  <script src="//cdn.staticfile.org/jquery/2.1.4/jquery.min.js"></script>
-  <script src="//cdn.staticfile.org/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="//cdn.staticfile.net/jquery/2.1.4/jquery.min.js"></script>
+  <script src="//cdn.staticfile.net/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
   <!--[if lt IE 9]>
-    <script src="//cdn.staticfile.org/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="//cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <script src="//cdn.staticfile.net/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="//cdn.staticfile.net/respond.js/1.4.2/respond.min.js"></script>
   <![endif]-->
 </head>
 <body>

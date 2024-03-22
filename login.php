@@ -109,7 +109,7 @@ include SYSTEM_ROOT.'header.php';
 </div>
 </div>
 <?php include SYSTEM_ROOT.'footer.php';?>
-<script src="//cdn.staticfile.org/layer/2.3/layer.js"></script>
+<script src="//cdn.staticfile.net/layer/2.3/layer.js"></script>
 <script>
 function connect(type){
     var ii = layer.load(2, {shade:[0.1,'#fff']});
