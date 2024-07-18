@@ -36,7 +36,7 @@ case 'pre_upload':
 	if($conf['type_block']){
 		$type_block = explode('|',$conf['type_block']);
 		if(in_array($ext,$type_block)){
-			exit('{"code":-1,"msg":"文件上传失败","error":"block"}');
+			exit('{"code":-1,"msg":"文件上传失败，不支持上传该格式文件","error":"block"}');
 		}
 	}
 	if($conf['name_block']){

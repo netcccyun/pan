@@ -31,10 +31,15 @@ case 'fileList':
 			$sql.=" AND `ip`='{$kw}'";
 		}
 	}
+	if($_POST['orderby'] == 1){
+		$orderby = 'count desc';
+	}else{
+		$orderby = 'id desc';
+	}
 	$offset = intval($_POST['offset']);
 	$limit = intval($_POST['limit']);
 	$total = $DB->getColumn("SELECT count(*) from pre_file WHERE{$sql}");
-	$list = $DB->getAll("SELECT * FROM pre_file WHERE{$sql} order by id desc limit $offset,$limit");
+	$list = $DB->getAll("SELECT * FROM pre_file WHERE{$sql} order by {$orderby} limit $offset,$limit");
 	$list2 = [];
 	foreach($list as $row){
 		$row['icon'] = type_to_icon($row['type']);

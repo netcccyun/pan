@@ -125,9 +125,9 @@ echo '<li class="disabled"><a>尾页</a></li>';
     </div>
 <?php include SYSTEM_ROOT.'footer.php';?>
 <?php if(!empty($conf['gonggao'])){?>
-<link href="//cdn.staticfile.net/snackbarjs/1.1.0/snackbar.min.css" rel="stylesheet">
-<script src="//cdn.staticfile.net/snackbarjs/1.1.0/snackbar.min.js"></script>
-<script src="//cdn.staticfile.net/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<link href="https://s4.zstatic.net/ajax/libs/snackbarjs/1.1.0/snackbar.min.css" rel="stylesheet">
+<script src="https://s4.zstatic.net/ajax/libs/snackbarjs/1.1.0/snackbar.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 <script>
 $(function() {
     if(!$.cookie('gonggao')){

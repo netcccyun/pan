@@ -63,9 +63,9 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 	  	</table>
     </div>
   </div>
-<script src="//cdn.staticfile.net/layer/3.1.1/layer.min.js"></script>
-<script src="//cdn.staticfile.net/bootstrap-table/1.20.2/bootstrap-table.min.js"></script>
-<script src="//cdn.staticfile.net/bootstrap-table/1.20.2/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/layer/3.1.1/layer.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/bootstrap-table/1.21.4/bootstrap-table.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/bootstrap-table/1.21.4/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
 <script src="../assets/js/custom.js"></script>
 <script>
 $(document).ready(function(){

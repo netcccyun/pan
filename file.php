@@ -235,7 +235,7 @@ if($filetype==1){
   </div>
 <?php include SYSTEM_ROOT.'footer.php';?>
 <?php if($filetype==2){?>
-<script type="text/javascript" src="//cdn.staticfile.net/aplayer/1.10.1/APlayer.min.js"></script>
+<script type="text/javascript" src="https://s4.zstatic.net/ajax/libs/aplayer/1.10.1/APlayer.min.js"></script>
 <script type="text/javascript">
 var ap = new APlayer({
   container: document.getElementById('aplayer'),
@@ -251,8 +251,8 @@ var ap = new APlayer({
 </script>
 <?php }elseif($filetype==3 && $row['block']==0){?>
 <script type="text/javascript" src="assets/js/ckplayer.min.js"></script>
-<?php if($type=='m3u8'){$plug='hls.js';?><script src="//cdn.staticfile.net/hls.js/1.2.4/hls.min.js"></script><?php }?>
-<?php if($type=='flv'||$type=='f4v'){$plug='flv.js';?><script src="//cdn.staticfile.net/flv.js/1.6.2/flv.min.js"></script><?php }?>
+<?php if($type=='m3u8'){$plug='hls.js';?><script src="https://s4.zstatic.net/ajax/libs/hls.js/1.2.4/hls.min.js"></script><?php }?>
+<?php if($type=='flv'||$type=='f4v'){$plug='flv.js';?><script src="https://s4.zstatic.net/ajax/libs/flv.js/1.6.2/flv.min.js"></script><?php }?>
 <script type="text/javascript">
   var videoObject = {
     container: '.videoplayer',
@@ -263,8 +263,8 @@ var ap = new APlayer({
   var player=new ckplayer(videoObject);
 </script>
 <?php }?>
-<script src="//cdn.staticfile.net/layer/2.3/layer.js"></script>
-<script src="//cdn.staticfile.net/clipboard.js/1.7.1/clipboard.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/layer/2.3/layer.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/clipboard.js/1.7.1/clipboard.min.js"></script>
 <script>
 function delete_confirm(){
   var hash = $("#hash").val();

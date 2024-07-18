@@ -86,9 +86,9 @@ $_SESSION['csrf_token'] = $csrf_token;
   <div class="colorful_loading"><i class="rect1"></i><i class="rect2"></i><i class="rect3"></i><i class="rect4"></i><i class="rect5"></i></div>
 </div>
 <?php include SYSTEM_ROOT.'footer.php';?>
-<script src="//cdn.staticfile.net/vue/2.6.14/vue.min.js"></script>
-<script src="//cdn.staticfile.net/layer/3.1.1/layer.js"></script>
-<script src="//cdn.staticfile.net/spark-md5/3.0.2/spark-md5.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/layer/3.1.1/layer.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/spark-md5/3.0.2/spark-md5.min.js"></script>
 <script>var upload_max_filesize = '<?php echo $conf['upload_size']?>';</script>
 <script src="./assets/js/uploadnew.js?v=<?php echo VERSION?>"></script>
 </body>

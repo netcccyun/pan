@@ -48,8 +48,8 @@ $title='用户登录';
 	<meta name="renderer" content="webkit">
 	<meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;">
 	<title>管理员登录</title>
-	<link href="//cdn.staticfile.net/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
-	<link href="//cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+	<link href="https://s4.zstatic.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
+	<link href="https://s4.zstatic.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
 	<style>
 body{background:linear-gradient(to right,#49bdad,#6a67c7) fixed}
 .form-horizontal{background-color:#fff;text-align:center;padding:50px 30px 30px;box-shadow:12px 12px 0 0 rgba(0,0,0,.3);margin-top:50%}

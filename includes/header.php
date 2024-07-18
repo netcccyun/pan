@@ -15,17 +15,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="format-detection" content="telephone=no">
   <!-- Bootstrap Material Design -->
-  <link href="//cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  <link href="//cdn.staticfile.net/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
-  <link href="//cdn.staticfile.net/bootstrap-material-design/0.5.10/css/bootstrap-material-design.min.css" rel="stylesheet">
-  <link href="//cdn.staticfile.net/bootstrap-material-design/0.5.10/css/ripples.min.css" rel="stylesheet">
-  <?php if($is_file){?><link rel="stylesheet" href="//cdn.staticfile.net/aplayer/1.10.1/APlayer.min.css"><link href="assets/css/ckplayer.css" rel="stylesheet"><?php }?>
+  <link href="https://s4.zstatic.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://s4.zstatic.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://s4.zstatic.net/ajax/libs/bootstrap-material-design/0.5.10/css/bootstrap-material-design.min.css" rel="stylesheet">
+  <link href="https://s4.zstatic.net/ajax/libs/bootstrap-material-design/0.5.10/css/ripples.min.css" rel="stylesheet">
+  <?php if($is_file){?><link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/aplayer/1.10.1/APlayer.min.css"><link href="assets/css/ckplayer.css" rel="stylesheet"><?php }?>
   <link href="assets/css/style.css?v=<?php echo VERSION?>" rel="stylesheet">
   <!--[if lt IE 9]>
-    <script src="//cdn.staticfile.net/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="//cdn.staticfile.net/respond.js/1.4.2/respond.min.js"></script>
+    <script src="https://s4.zstatic.net/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://s4.zstatic.net/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
   <![endif]-->
-  <script type="text/javascript" src="//cdn.staticfile.net/jquery/1.12.4/jquery.min.js"></script>
+  <script type="text/javascript" src="https://s4.zstatic.net/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 </head>
 <body>
 

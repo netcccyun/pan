@@ -247,7 +247,7 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 </div>
     </div>
   </div>
-<script src="//cdn.staticfile.net/layer/2.3/layer.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/layer/2.3/layer.js"></script>
 <script>
 var items = $("select[default]");
 for (i = 0; i < items.length; i++) {
