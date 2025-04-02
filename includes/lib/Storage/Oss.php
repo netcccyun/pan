@@ -130,12 +130,12 @@ class Oss implements IStorage {
 		$filename = '"'.$filename.'"; filename*=utf-8\'\''.rawurlencode($filename);
 		if(!$content_type){
 			$options = [
-				'response-content-type' => 'application/force-download',
+				//'response-content-type' => 'application/force-download',
 				'response-content-disposition' => 'attachment; filename='.$filename,
 			];
 		}else{
 			$options = [
-				'response-content-type' => $content_type,
+				//'response-content-type' => $content_type,
 				'response-content-disposition' => 'inline; filename='.$filename,
 			];
 		}

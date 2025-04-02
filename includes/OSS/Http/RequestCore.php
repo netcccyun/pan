@@ -157,7 +157,7 @@ class RequestCore
     /**
      * The state of SSL certificate verification.
      */
-    public $ssl_verification = false;
+    public $ssl_verification = true;
 
     /**
      * The user-defined callback function to call when a stream is read from.
@@ -170,7 +170,7 @@ class RequestCore
     public $registered_streaming_write_callback = null;
 
     /**
-     * The request timeout time, which is 5,184,000 seconds,that is, 6 days by default
+     * The request timeout time, which is 5,184,000 seconds,that is, 60 days by default
      *
      * @var int
      */

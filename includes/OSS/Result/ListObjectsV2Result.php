@@ -2,9 +2,11 @@
 
 namespace OSS\Result;
 
+use OSS\Core\OssException;
 use OSS\Core\OssUtil;
 use OSS\Model\ObjectInfo;
 use OSS\Model\ObjectListInfoV2;
+use OSS\Model\Owner;
 use OSS\Model\PrefixInfo;
 
 /**
@@ -16,7 +18,8 @@ class ListObjectsV2Result extends Result
     /**
      * Parse the xml data returned by the ListObjectsV2 interface
      *
-     * return ObjectListInfoV2
+     * @return ObjectListInfoV2
+     * @throws OssException
      */
     protected function parseDataFromResponse()
     {
@@ -34,7 +37,7 @@ class ListObjectsV2Result extends Result
         $continuationToken = isset($xml->ContinuationToken) ? strval($xml->ContinuationToken) : "";
         $nextContinuationToken = isset($xml->NextContinuationToken) ? strval($xml->NextContinuationToken) : "";
         $startAfter = isset($xml->StartAfter) ? strval($xml->StartAfter) : "";
-        $startAfter =  OssUtil::decodeKey($startAfter, $encodingType);
+        $startAfter = OssUtil::decodeKey($startAfter, $encodingType);
         $keyCount = isset($xml->KeyCount) ? intval($xml->KeyCount) : 0;
         return new ObjectListInfoV2($bucketName, $prefix, $maxKeys, $delimiter, $isTruncated, $objectList, $prefixList, $continuationToken, $nextContinuationToken, $startAfter, $keyCount);
     }
@@ -51,7 +54,13 @@ class ListObjectsV2Result extends Result
                 $type = isset($content->Type) ? strval($content->Type) : "";
                 $size = isset($content->Size) ? strval($content->Size) : "0";
                 $storageClass = isset($content->StorageClass) ? strval($content->StorageClass) : "";
-                $retList[] = new ObjectInfo($key, $lastModified, $eTag, $type, $size, $storageClass);
+                if(isset($content->Owner)){
+                    $owner = new Owner(strval($content->Owner->ID),strval($content->Owner->DisplayName));
+                }else{
+                    $owner = null;
+                }
+                $restoreInfo= isset($content->RestoreInfo) ? strval($content->RestoreInfo) : null;
+                $retList[] = new ObjectInfo($key, $lastModified, $eTag, $type, $size, $storageClass,$owner,$restoreInfo);
             }
         }
         return $retList;
