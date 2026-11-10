@@ -1,4 +1,5 @@
 <?php
+
 namespace GuzzleHttp\Command\Guzzle\ResponseLocation;
 
 use GuzzleHttp\Command\Guzzle\Parameter;
@@ -11,7 +12,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 class XmlLocation extends AbstractLocation
 {
-    /** @var \SimpleXMLElement XML document being visited */
+    /** @var \SimpleXMLElement|null XML document being visited */
     private $xml;
 
     /**
@@ -25,9 +26,6 @@ class XmlLocation extends AbstractLocation
     }
 
     /**
-     * @param ResultInterface $result
-     * @param ResponseInterface $response
-     * @param Parameter $model
      * @return ResultInterface
      */
     public function before(
@@ -35,15 +33,28 @@ class XmlLocation extends AbstractLocation
         ResponseInterface $response,
         Parameter $model
     ) {
-        $this->xml = simplexml_load_string((string) $response->getBody());
+        $this->xml = null;
+
+        $previous = libxml_use_internal_errors(true);
+        libxml_clear_errors();
+
+        try {
+            $xml = simplexml_load_string((string) $response->getBody());
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
+
+        if (!$xml instanceof \SimpleXMLElement) {
+            throw new \RuntimeException('Unable to parse XML response');
+        }
+
+        $this->xml = $xml;
 
         return $result;
     }
 
     /**
-     * @param ResultInterface $result
-     * @param ResponseInterface $response
-     * @param Parameter $model
      * @return Result|ResultInterface
      */
     public function after(
@@ -53,12 +64,12 @@ class XmlLocation extends AbstractLocation
     ) {
         // Handle additional, undefined properties
         $additional = $model->getAdditionalProperties();
-        if ($additional instanceof Parameter &&
-            $additional->getLocation() == $this->locationName
+        if ($additional instanceof Parameter
+            && $additional->getLocation() == $this->locationName
         ) {
             $result = new Result(array_merge(
                 $result->toArray(),
-                self::xmlToArray($this->xml)
+                self::xmlToArray($this->getXml())
             ));
         }
 
@@ -68,9 +79,6 @@ class XmlLocation extends AbstractLocation
     }
 
     /**
-     * @param ResultInterface $result
-     * @param ResponseInterface $response
-     * @param Parameter $param
      * @return ResultInterface
      */
     public function visit(
@@ -80,15 +88,18 @@ class XmlLocation extends AbstractLocation
     ) {
         $sentAs = $param->getWireName();
         $ns = null;
-        if (strstr($sentAs, ':')) {
+        if (null !== $sentAs && strstr($sentAs, ':')) {
             list($ns, $sentAs) = explode(':', $sentAs);
         }
 
+        $xml = $this->getXml();
+        $children = $xml->children($ns, true)->{$sentAs};
+
         // Process the primary property
-        if (count($this->xml->children($ns, true)->{$sentAs})) {
+        if (count($children)) {
             $result[$param->getName()] = $this->recursiveProcess(
                 $param,
-                $this->xml->children($ns, true)->{$sentAs}
+                $children
             );
         }
 
@@ -96,10 +107,23 @@ class XmlLocation extends AbstractLocation
     }
 
     /**
+     * @return \SimpleXMLElement
+     */
+    private function getXml()
+    {
+        if (!$this->xml instanceof \SimpleXMLElement) {
+            throw new \RuntimeException('XML response has not been parsed');
+        }
+
+        return $this->xml;
+    }
+
+    /**
      * Recursively process a parameter while applying filters
      *
      * @param Parameter         $param API parameter being processed
      * @param \SimpleXMLElement $node  Node being processed
+     *
      * @return array
      */
     private function recursiveProcess(
@@ -132,8 +156,6 @@ class XmlLocation extends AbstractLocation
     }
 
     /**
-     * @param Parameter $param
-     * @param \SimpleXMLElement $node
      * @return array
      */
     private function processArray(Parameter $param, \SimpleXMLElement $node)
@@ -144,7 +166,7 @@ class XmlLocation extends AbstractLocation
         $result = [];
         $ns = null;
 
-        if (strstr($sentAs, ':')) {
+        if (null !== $sentAs && strstr($sentAs, ':')) {
             // Get namespace from the wire name
             list($ns, $sentAs) = explode(':', $sentAs);
         } else {
@@ -174,6 +196,7 @@ class XmlLocation extends AbstractLocation
      *
      * @param Parameter         $param API parameter being parsed
      * @param \SimpleXMLElement $node  Value to process
+     *
      * @return array
      */
     private function processObject(Parameter $param, \SimpleXMLElement $node)
@@ -184,10 +207,17 @@ class XmlLocation extends AbstractLocation
         if ($properties = $param->getProperties()) {
             foreach ($properties as $property) {
                 $name = $property->getName();
-                $sentAs = $property->getWireName();
-                $knownProps[$sentAs] = 1;
-                if (strpos($sentAs, ':')) {
+                $wireName = $property->getWireName();
+                $sentAs = $wireName;
+                if ($wireName !== null) {
+                    $knownProps[$wireName] = 1;
+                }
+                if ($sentAs !== null && false !== strpos($sentAs, ':')) {
                     list($ns, $sentAs) = explode(':', $sentAs);
+
+                    if ($ns === '') {
+                        $knownProps[$sentAs] = 1;
+                    }
                 } else {
                     $ns = $property->getData('xmlNs');
                 }
@@ -243,9 +273,8 @@ class XmlLocation extends AbstractLocation
     /**
      * Convert an XML document to an array.
      *
-     * @param \SimpleXMLElement $xml
-     * @param int               $nesting
-     * @param null              $ns
+     * @param string|null $ns
+     * @param int         $nesting
      *
      * @return array
      */
@@ -285,7 +314,7 @@ class XmlLocation extends AbstractLocation
         }
 
         // Extract text from node
-        $text = trim((string) $xml);
+        $text = trim((string) $xml, " \n\r\t\0\x0B");
         if ($text === '') {
             $text = null;
         }

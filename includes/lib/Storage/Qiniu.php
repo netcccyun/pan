@@ -96,10 +96,11 @@ class Qiniu implements IStorage {
 			$bucketMgr = new \Qiniu\Storage\BucketManager($this->auth);
 			list($res, $err) = $bucketMgr->stat($this->bucket, $this->filepath.$name);
 			if($res!==null){
-				$result = ['length'=>$res['fsize'], 'content_type'=>$res['fsize']];
+				$result = ['length'=>$res['fsize'], 'content_type'=>$res['mimeType']];
 				return $result;
 			}else{
 				$this->errmsg = $err ? $err->message() : 'Unknown Error';
+				return false;
 			}
         } catch(\Exception $e) {
 			$this->errmsg = __FUNCTION__ . ": " . $e->getMessage();
@@ -116,6 +117,7 @@ class Qiniu implements IStorage {
 				return true;
 			}else{
 				$this->errmsg = $err->message();
+				return false;
 			}
         } catch(\Exception $e) {
 			$this->errmsg = __FUNCTION__ . ": " . $e->getMessage();
@@ -126,13 +128,12 @@ class Qiniu implements IStorage {
 
 	public function getUploadParam($name, $filename, $max_file_size = 0){
 		$config = new \Qiniu\Config();
-		$config->useHTTPS = true;
 		list($upHost, $err) = $config->getUpHostV2($this->config['accessKey'], $this->bucket);
         if ($err != null) {
             $this->errmsg = $err->message();
 			return false;
         }
-		$url = $upHost;
+		$url = preg_replace('/^http:/', 'https:', $upHost);
 		$key = $this->filepath.$name;
 		$policy = [];
 		if($max_file_size > 0){

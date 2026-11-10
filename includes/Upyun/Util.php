@@ -6,7 +6,7 @@ class Util
     public static function trim($str)
     {
         if (is_array($str)) {
-            return array_map(array('Util', 'trim'), $str);
+            return array_map(array(self::class, 'trim'), $str);
         } else {
             return trim($str);
         }

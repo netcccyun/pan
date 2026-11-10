@@ -41,7 +41,7 @@ if($view_type == 'image'){
   $filetype = 2;
   $title = '<i class="fa fa-music"></i> 音乐播放器';
   $htmlcode = htmlspecialchars('<audio id="bgmMusic" src="'.$viewurl_all.'" autoplay="autoplay" loop="loop" preload="auto"></audio>');
-  $htmlcode2 = htmlspecialchars('<iframe src="'.$siteurl.'player.php?hash='.$hash.'" width="407" scrolling="no"frameborder="0"height="70"></iframe>');
+  $htmlcode2 = htmlspecialchars('<iframe src="'.$siteurl.'player.php?hash='.$row['hash'].'" width="407" scrolling="no"frameborder="0"height="70"></iframe>');
   $ubbcode = '[audio=X]'.$viewurl_all.'[/audio]';
   $linktitle = '音乐链接';
 }elseif($view_type == 'video'){
@@ -49,7 +49,7 @@ if($view_type == 'image'){
   $title = '<i class="fa fa-video-camera"></i> 视频播放器';
   $htmlcode = htmlspecialchars('<video id="movies" src="'.$viewurl_all.'" autobuffer="true" controls="" width="100
   %"></video>');
-  $htmlcode2 = htmlspecialchars('<iframe src="'.$siteurl.'player.php?hash='.$hash.'" width="800" height="500" scrolling="no" frameborder="0"></iframe>');
+  $htmlcode2 = htmlspecialchars('<iframe src="'.$siteurl.'player.php?hash='.$row['hash'].'" width="800" height="500" scrolling="no" frameborder="0"></iframe>');
   $ubbcode = '[movie=320*180]'.$viewurl_all.'[/movie]';
   $linktitle = '视频链接';
 }else{
@@ -203,7 +203,7 @@ if($filetype==1){
                   <div class="tab-pane fade" id="manager">
                       <div class="row" align="center">
                           <div class="col-md-12">
-                            <input type="hidden" id="hash" name="hash" value="<?php echo $hash?>">
+                            <input type="hidden" id="hash" name="hash" value="<?php echo $row['hash']?>">
                             <input type="hidden" id="csrf_token" name="csrf_token" value="<?php echo $csrf_token?>">
                             <button onclick="delete_confirm()" class="btn btn-raised btn-danger"><i class="fa fa-close" aria-hidden="true"></i> 删除文件</button>
                           </div>
@@ -235,14 +235,14 @@ if($filetype==1){
   </div>
 <?php include SYSTEM_ROOT.'footer.php';?>
 <?php if($filetype==2){?>
-<script type="text/javascript" src="https://s4.zstatic.net/ajax/libs/aplayer/1.10.1/APlayer.min.js"></script>
+<script type="text/javascript" src="<?php echo $cdnpublic?>aplayer/1.10.1/APlayer.min.js"></script>
 <script type="text/javascript">
 var ap = new APlayer({
   container: document.getElementById('aplayer'),
   loop: 'none',
   theme: '#b2dae6',
   audio: [{
-      title: '<?php echo $name?>',
+      title: '<?php echo addslashes($name)?>',
       author: 'none',
       url: '<?php echo $viewurl_all?>',
       cover: './assets/img/music.png',
@@ -251,8 +251,8 @@ var ap = new APlayer({
 </script>
 <?php }elseif($filetype==3 && $row['block']==0){?>
 <script type="text/javascript" src="assets/js/ckplayer.min.js"></script>
-<?php if($type=='m3u8'){$plug='hls.js';?><script src="https://s4.zstatic.net/ajax/libs/hls.js/1.2.4/hls.min.js"></script><?php }?>
-<?php if($type=='flv'||$type=='f4v'){$plug='flv.js';?><script src="https://s4.zstatic.net/ajax/libs/flv.js/1.6.2/flv.min.js"></script><?php }?>
+<?php if($type=='m3u8'){$plug='hls.js';?><script src="<?php echo $cdnpublic?>hls.js/1.6.14/hls.min.js"></script><?php }?>
+<?php if($type=='flv'||$type=='f4v'){$plug='flv.js';?><script src="<?php echo $cdnpublic?>flv.js/1.6.2/flv.min.js"></script><?php }?>
 <script type="text/javascript">
   var videoObject = {
     container: '.videoplayer',
@@ -263,8 +263,8 @@ var ap = new APlayer({
   var player=new ckplayer(videoObject);
 </script>
 <?php }?>
-<script src="https://s4.zstatic.net/ajax/libs/layer/2.3/layer.js"></script>
-<script src="https://s4.zstatic.net/ajax/libs/clipboard.js/1.7.1/clipboard.min.js"></script>
+<script src="<?php echo $cdnpublic?>layer/3.1.1/layer.js"></script>
+<script src="<?php echo $cdnpublic?>clipboard.js/1.7.1/clipboard.min.js"></script>
 <script>
 function delete_confirm(){
   var hash = $("#hash").val();

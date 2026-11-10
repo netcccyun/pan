@@ -1,9 +1,10 @@
 <?php
+
 namespace GuzzleHttp\Command\Exception;
 
+use GuzzleHttp\Command\CommandInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Command\CommandInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -22,8 +23,6 @@ class CommandException extends \RuntimeException implements GuzzleException
     private $response;
 
     /**
-     * @param CommandInterface $command
-     * @param \Exception $prev
      * @return CommandException
      */
     public static function fromPrevious(CommandInterface $command, \Exception $prev)
@@ -50,26 +49,23 @@ class CommandException extends \RuntimeException implements GuzzleException
         }
 
         // Prepare the message.
-        $message = 'There was an error executing the ' . $command->getName()
-            . ' command: ' . $prev->getMessage();
+        $message = 'There was an error executing the '.$command->getName()
+            .' command: '.$prev->getMessage();
 
         // Create the exception.
         return new $class($message, $command, $prev, $request, $response);
     }
 
     /**
-     * @param string $message Exception message
-     * @param CommandInterface $command
-     * @param \Exception $previous Previous exception (if any)
-     * @param RequestInterface $request
-     * @param ResponseInterface $response
+     * @param string          $message  Exception message
+     * @param \Exception|null $previous Previous exception (if any)
      */
     public function __construct(
         $message,
         CommandInterface $command,
-        \Exception $previous = null,
-        RequestInterface $request = null,
-        ResponseInterface $response = null
+        ?\Exception $previous = null,
+        ?RequestInterface $request = null,
+        ?ResponseInterface $response = null
     ) {
         $this->command = $command;
         $this->request = $request;

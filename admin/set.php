@@ -9,7 +9,7 @@ include './head.php';
 if($islogin==1){}else exit("<script language='javascript'>window.location.href='./login.php';</script>");
 ?>
   <div class="container" style="padding-top:70px;">
-    <div class="col-xs-12 col-sm-10 col-lg-8 center-block" style="float: none;">
+    <div class="col-xs-12 col-sm-9 col-lg-8 center-block" style="float: none;">
 <?php
 $mod=isset($_GET['mod'])?$_GET['mod']:null;
 ?>
@@ -21,39 +21,43 @@ if($mod=='site'){
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form-horizontal" role="form">
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">网站标题</label>
-	  <div class="col-sm-10"><input type="text" name="title" value="<?php echo $conf['title']; ?>" class="form-control" required/></div>
+	  <label class="col-sm-3 control-label">网站标题</label>
+	  <div class="col-sm-9"><input type="text" name="title" value="<?php echo $conf['title']; ?>" class="form-control" required/></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">关键字</label>
-	  <div class="col-sm-10"><input type="text" name="keywords" value="<?php echo $conf['keywords']; ?>" class="form-control"/></div>
+	  <label class="col-sm-3 control-label">关键字</label>
+	  <div class="col-sm-9"><input type="text" name="keywords" value="<?php echo $conf['keywords']; ?>" class="form-control"/></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">网站描述</label>
-	  <div class="col-sm-10"><input type="text" name="description" value="<?php echo $conf['description']; ?>" class="form-control"/></div>
+	  <label class="col-sm-3 control-label">网站描述</label>
+	  <div class="col-sm-9"><input type="text" name="description" value="<?php echo $conf['description']; ?>" class="form-control"/></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">禁止访问IP</label>
-	  <div class="col-sm-10"><textarea class="form-control" name="blackip" rows="2" placeholder="多个IP用|隔开"><?php echo $conf['blackip']?></textarea></div>
+	  <label class="col-sm-3 control-label">禁止访问IP</label>
+	  <div class="col-sm-9"><textarea class="form-control" name="blackip" rows="2" placeholder="多个IP用|隔开"><?php echo $conf['blackip']?></textarea></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">首页公告</label>
-	  <div class="col-sm-10"><textarea class="form-control" name="gonggao" rows="3" placeholder="不填写则不显示首页公告"><?php echo htmlspecialchars($conf['gonggao'])?></textarea></div>
+	  <label class="col-sm-3 control-label">首页公告</label>
+	  <div class="col-sm-9"><textarea class="form-control" name="gonggao" rows="3" placeholder="不填写则不显示首页公告"><?php echo htmlspecialchars($conf['gonggao'])?></textarea></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">文件查看页公告</label>
-	  <div class="col-sm-10"><textarea class="form-control" name="gg_file" rows="3" placeholder="不填写则不显示"><?php echo htmlspecialchars($conf['gg_file'])?></textarea></div>
+	  <label class="col-sm-3 control-label">文件查看页公告</label>
+	  <div class="col-sm-9"><textarea class="form-control" name="gg_file" rows="3" placeholder="不填写则不显示"><?php echo htmlspecialchars($conf['gg_file'])?></textarea></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">统计代码</label>
-	  <div class="col-sm-10"><textarea class="form-control" name="tongji" rows="3" placeholder="不填写则不显示统计代码"><?php echo htmlspecialchars($conf['tongji'])?></textarea></div>
+	  <label class="col-sm-3 control-label">统计代码</label>
+	  <div class="col-sm-9"><textarea class="form-control" name="tongji" rows="3" placeholder="不填写则不显示统计代码"><?php echo htmlspecialchars($conf['tongji'])?></textarea></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">文件搜索功能</label>
-	  <div class="col-sm-10"><select class="form-control" name="filesearch" default="<?php echo $conf['filesearch']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
+	  <label class="col-sm-3 control-label">公共静态资源CDN</label>
+	  <div class="col-sm-9"><select class="form-control" name="cdnpublic" default="<?php echo $conf['cdnpublic']?>"><option value="0">本地</option><option value="1">Web缓存网</option><option value="2">ZstaticCDN</option><option value="3">未闻花名CDN</option></select></div>
+	</div>
+	<div class="form-group">
+	  <label class="col-sm-3 control-label">文件搜索功能</label>
+	  <div class="col-sm-9"><select class="form-control" name="filesearch" default="<?php echo $conf['filesearch']?>"><option value="0">关闭</option><option value="1">开启</option></select></div>
 	</div><br/>
 	<div class="form-group">
-	  <div class="col-sm-offset-2 col-sm-10"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
+	  <div class="col-sm-offset-3 col-sm-9"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
 	 </div>
 	</div>
   </form>
@@ -135,10 +139,12 @@ API接口地址：<?php echo $siteurl?>api.php
 	$newpwd=$_POST['newpwd'];
 	$newpwd2=$_POST['newpwd2'];
 	if($user==null)showmsg('用户名不能为空！',3);
+	if(!empty($newpwd) && !empty($newpwd2)){
+		if($oldpwd!==$conf['admin_pwd'])showmsg('旧密码不正确！',3);
+		if($newpwd!==$newpwd2)showmsg('两次输入的密码不一致！',3);
+	}
 	saveSetting('admin_user',$user);
 	if(!empty($newpwd) && !empty($newpwd2)){
-		if($oldpwd!=$conf['admin_pwd'])showmsg('旧密码不正确！',3);
-		if($newpwd!=$newpwd2)showmsg('两次输入的密码不一致！',3);
 		saveSetting('admin_pwd',$newpwd);
 	}
 	showmsg('修改成功！请重新登录',1);
@@ -149,23 +155,23 @@ API接口地址：<?php echo $siteurl?>api.php
 <div class="panel-body">
   <form action="./set.php?mod=account_n" method="post" class="form-horizontal" role="form"><input type="hidden" name="do" value="submit"/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">用户名</label>
-	  <div class="col-sm-10"><input type="text" name="user" value="<?php echo $conf['admin_user']; ?>" class="form-control" required/></div>
+	  <label class="col-sm-3 control-label">用户名</label>
+	  <div class="col-sm-9"><input type="text" name="user" value="<?php echo $conf['admin_user']; ?>" class="form-control" required/></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">旧密码</label>
-	  <div class="col-sm-10"><input type="password" name="oldpwd" value="" class="form-control" placeholder="请输入当前的管理员密码"/></div>
+	  <label class="col-sm-3 control-label">旧密码</label>
+	  <div class="col-sm-9"><input type="password" name="oldpwd" value="" class="form-control" placeholder="请输入当前的管理员密码"/></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">新密码</label>
-	  <div class="col-sm-10"><input type="password" name="newpwd" value="" class="form-control" placeholder="不修改请留空"/></div>
+	  <label class="col-sm-3 control-label">新密码</label>
+	  <div class="col-sm-9"><input type="password" name="newpwd" value="" class="form-control" placeholder="不修改请留空"/></div>
 	</div><br/>
 	<div class="form-group">
-	  <label class="col-sm-2 control-label">重输密码</label>
-	  <div class="col-sm-10"><input type="password" name="newpwd2" value="" class="form-control" placeholder="不修改请留空"/></div>
+	  <label class="col-sm-3 control-label">重输密码</label>
+	  <div class="col-sm-9"><input type="password" name="newpwd2" value="" class="form-control" placeholder="不修改请留空"/></div>
 	</div><br/>
 	<div class="form-group">
-	  <div class="col-sm-offset-2 col-sm-10"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
+	  <div class="col-sm-offset-3 col-sm-9"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
 	 </div>
 	</div>
   </form>
@@ -179,11 +185,11 @@ API接口地址：<?php echo $siteurl?>api.php
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form-horizontal" role="form">
     <div class="form-group">
-	  <label class="col-sm-2 control-label">用户IP地址获取方式</label>
-	  <div class="col-sm-10"><select class="form-control" name="ip_type" default="<?php echo $conf['ip_type']?>"><option value="0">0_X_FORWARDED_FOR</option><option value="1">1_X_REAL_IP</option><option value="2">2_REMOTE_ADDR</option></select></div>
+	  <label class="col-sm-3 control-label">用户IP地址获取方式</label>
+	  <div class="col-sm-9"><select class="form-control" name="ip_type" default="<?php echo $conf['ip_type']?>"><option value="0">0_X_FORWARDED_FOR</option><option value="1">1_X_REAL_IP</option><option value="2">2_REMOTE_ADDR</option></select></div>
 	</div>
 	<div class="form-group">
-	  <div class="col-sm-offset-2 col-sm-10"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
+	  <div class="col-sm-offset-3 col-sm-9"><input type="submit" name="submit" value="修改" class="btn btn-primary form-control"/><br/>
 	 </div>
 	</div>
   </form>
@@ -345,6 +351,7 @@ $(document).ready(function(){
 	<div class="form-group" id="green_check_porn_" style="<?php echo $conf['green_check_porn']!=1?'display:none;':null; ?>">
 	  <label class="col-sm-3 control-label">图片智能鉴黄屏蔽类型</label>
 	  <div class="col-sm-9">
+	  <input type="hidden" name="green_label_porn" value=""/>
 	  <label class="checkbox-inline"><input type="checkbox" name="green_label_porn[]" value="porn" <?php echo in_array('porn',$green_label_porn)?'checked':null;?>> 色情图片（porn）</label>
 	  <label class="checkbox-inline"><input type="checkbox" name="green_label_porn[]" value="sexy" <?php echo in_array('sexy',$green_label_porn)?'checked':null;?>> 性感图片（sexy）</label>
 	  </div>
@@ -356,6 +363,7 @@ $(document).ready(function(){
 	<div class="form-group" id="green_check_terrorism_" style="<?php echo $conf['green_check_terrorism']!=1?'display:none;':null; ?>">
 	  <label class="col-sm-3 control-label">图片暴恐涉政识别屏蔽类型</label>
 	  <div class="col-sm-9">
+	  <input type="hidden" name="green_label_terrorism" value=""/>
 	  <label class="checkbox-inline"><input type="checkbox" name="green_label_terrorism[]" value="bloody" <?php echo in_array('bloody',$green_label_terrorism)?'checked':null;?>> 血腥（bloody）</label>
 	  <label class="checkbox-inline"><input type="checkbox" name="green_label_terrorism[]" value="explosion" <?php echo in_array('explosion',$green_label_terrorism)?'checked':null;?>> 爆炸烟光（explosion）</label>
 	  <label class="checkbox-inline"><input type="checkbox" name="green_label_terrorism[]" value="outfit" <?php echo in_array('outfit',$green_label_terrorism)?'checked':null;?>> 特殊装束（outfit）</label>
@@ -437,7 +445,7 @@ $("select[name='green_check_terrorism']").change(function(){
 ?>
     </div>
   </div>
-<script src="https://s4.zstatic.net/ajax/libs/layer/2.3/layer.js"></script>
+<script src="../assets/libs/layer/3.1.1/layer.js"></script>
 <script>
 var items = $("select[default]");
 for (i = 0; i < items.length; i++) {

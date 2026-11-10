@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GuzzleHttp\Psr7;
 
+use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -9,11 +12,11 @@ use Psr\Http\Message\StreamInterface;
  */
 trait MessageTrait
 {
-    /** @var array Map of all registered headers, as original name => array of values */
+    /** @var string[][] Map of all registered headers, as original name => array of values */
     private $headers = [];
 
-    /** @var array Map of lowercase header name => original name at registration */
-    private $headerNames  = [];
+    /** @var string[] Map of lowercase header name => original name at registration */
+    private $headerNames = [];
 
     /** @var string */
     private $protocol = '1.1';
@@ -21,35 +24,50 @@ trait MessageTrait
     /** @var StreamInterface|null */
     private $stream;
 
-    public function getProtocolVersion()
+    public function getProtocolVersion(): string
     {
         return $this->protocol;
     }
 
-    public function withProtocolVersion($version)
+    /**
+     * @return static
+     */
+    public function withProtocolVersion($version): MessageInterface
     {
+        if (!\is_string($version)) {
+            \trigger_deprecation(
+                'guzzlehttp/psr7',
+                '2.11',
+                'Passing %s to MessageInterface::withProtocolVersion() is deprecated; guzzlehttp/psr7 3.0 requires string.',
+                \get_debug_type($version)
+            );
+        }
+
+        $this->assertProtocolVersion($version);
+
         if ($this->protocol === $version) {
             return $this;
         }
 
         $new = clone $this;
         $new->protocol = $version;
+
         return $new;
     }
 
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->headers;
     }
 
-    public function hasHeader($header)
+    public function hasHeader($header): bool
     {
-        return isset($this->headerNames[strtolower($header)]);
+        return isset($this->headerNames[Utils::asciiToLower($header)]);
     }
 
-    public function getHeader($header)
+    public function getHeader($header): array
     {
-        $header = strtolower($header);
+        $header = Utils::asciiToLower($header);
 
         if (!isset($this->headerNames[$header])) {
             return [];
@@ -60,16 +78,32 @@ trait MessageTrait
         return $this->headers[$header];
     }
 
-    public function getHeaderLine($header)
+    public function getHeaderLine($header): string
     {
         return implode(', ', $this->getHeader($header));
     }
 
-    public function withHeader($header, $value)
+    /**
+     * @return static
+     */
+    public function withHeader($header, $value): MessageInterface
     {
         $this->assertHeader($header);
+        $values = \is_array($value) ? $value : [$value];
+        foreach ($values as $item) {
+            if (!\is_string($item) && (\is_scalar($item) || $item === null)) {
+                \trigger_deprecation(
+                    'guzzlehttp/psr7',
+                    '2.11',
+                    'Passing %s to MessageInterface::withHeader() is deprecated; guzzlehttp/psr7 3.0 requires string|string[].',
+                    \get_debug_type($item)
+                );
+
+                break;
+            }
+        }
         $value = $this->normalizeHeaderValue($value);
-        $normalized = strtolower($header);
+        $normalized = Utils::asciiToLower($header);
 
         $new = clone $this;
         if (isset($new->headerNames[$normalized])) {
@@ -81,11 +115,27 @@ trait MessageTrait
         return $new;
     }
 
-    public function withAddedHeader($header, $value)
+    /**
+     * @return static
+     */
+    public function withAddedHeader($header, $value): MessageInterface
     {
         $this->assertHeader($header);
+        $values = \is_array($value) ? $value : [$value];
+        foreach ($values as $item) {
+            if (!\is_string($item) && (\is_scalar($item) || $item === null)) {
+                \trigger_deprecation(
+                    'guzzlehttp/psr7',
+                    '2.11',
+                    'Passing %s to MessageInterface::withAddedHeader() is deprecated; guzzlehttp/psr7 3.0 requires string|string[].',
+                    \get_debug_type($item)
+                );
+
+                break;
+            }
+        }
         $value = $this->normalizeHeaderValue($value);
-        $normalized = strtolower($header);
+        $normalized = Utils::asciiToLower($header);
 
         $new = clone $this;
         if (isset($new->headerNames[$normalized])) {
@@ -99,9 +149,12 @@ trait MessageTrait
         return $new;
     }
 
-    public function withoutHeader($header)
+    /**
+     * @return static
+     */
+    public function withoutHeader($header): MessageInterface
     {
-        $normalized = strtolower($header);
+        $normalized = Utils::asciiToLower($header);
 
         if (!isset($this->headerNames[$normalized])) {
             return $this;
@@ -115,7 +168,7 @@ trait MessageTrait
         return $new;
     }
 
-    public function getBody()
+    public function getBody(): StreamInterface
     {
         if (!$this->stream) {
             $this->stream = Utils::streamFor('');
@@ -124,7 +177,10 @@ trait MessageTrait
         return $this->stream;
     }
 
-    public function withBody(StreamInterface $body)
+    /**
+     * @return static
+     */
+    public function withBody(StreamInterface $body): MessageInterface
     {
         if ($body === $this->stream) {
             return $this;
@@ -132,21 +188,37 @@ trait MessageTrait
 
         $new = clone $this;
         $new->stream = $body;
+
         return $new;
     }
 
-    private function setHeaders(array $headers)
+    /**
+     * @param (string|string[])[] $headers
+     */
+    private function setHeaders(array $headers): void
     {
         $this->headerNames = $this->headers = [];
         foreach ($headers as $header => $value) {
-            if (is_int($header)) {
-                // Numeric array keys are converted to int by PHP but having a header name '123' is not forbidden by the spec
-                // and also allowed in withHeader(). So we need to cast it to string again for the following assertion to pass.
-                $header = (string) $header;
-            }
+            // Numeric array keys are converted to int by PHP.
+            $header = (string) $header;
+
             $this->assertHeader($header);
+            $values = \is_array($value) ? $value : [$value];
+            foreach ($values as $item) {
+                if (!\is_string($item) && (\is_scalar($item) || $item === null)) {
+                    \trigger_deprecation(
+                        'guzzlehttp/psr7',
+                        '2.11',
+                        'Passing %s to %s::__construct() is deprecated; guzzlehttp/psr7 3.0 requires string|string[].',
+                        \get_debug_type($item),
+                        static::class
+                    );
+
+                    break;
+                }
+            }
             $value = $this->normalizeHeaderValue($value);
-            $normalized = strtolower($header);
+            $normalized = Utils::asciiToLower($header);
             if (isset($this->headerNames[$normalized])) {
                 $header = $this->headerNames[$normalized];
                 $this->headers[$header] = array_merge($this->headers[$header], $value);
@@ -162,14 +234,18 @@ trait MessageTrait
      *
      * @return string[]
      */
-    private function normalizeHeaderValue($value)
+    private function normalizeHeaderValue($value): array
     {
-        if (!is_array($value)) {
-            return $this->trimAndValidateHeaderValues([$value]);
+        if (is_array($value) && $value === []) {
+            \trigger_deprecation(
+                'guzzlehttp/psr7',
+                '2.11',
+                'Passing an empty array as a header value is deprecated; guzzlehttp/psr7 3.0 rejects empty header value arrays.'
+            );
         }
 
-        if (count($value) === 0) {
-            throw new \InvalidArgumentException('Header value can not be an empty array.');
+        if (!is_array($value)) {
+            return $this->trimAndValidateHeaderValues([$value]);
         }
 
         return $this->trimAndValidateHeaderValues($value);
@@ -187,9 +263,9 @@ trait MessageTrait
      *
      * @return string[] Trimmed header values
      *
-     * @see https://tools.ietf.org/html/rfc7230#section-3.2.4
+     * @see https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.4
      */
-    private function trimAndValidateHeaderValues(array $values)
+    private function trimAndValidateHeaderValues(array $values): array
     {
         return array_map(function ($value) {
             if (!is_scalar($value) && null !== $value) {
@@ -197,6 +273,12 @@ trait MessageTrait
                     'Header value must be scalar or null but %s provided.',
                     is_object($value) ? get_class($value) : gettype($value)
                 ));
+            }
+
+            // Convert non-finite floats explicitly, as implicit coercion of
+            // NAN emits a warning on PHP 8.5.
+            if (is_float($value) && !is_finite($value)) {
+                $value = is_nan($value) ? 'NAN' : ($value > 0 ? 'INF' : '-INF');
             }
 
             $trimmed = trim((string) $value, " \t");
@@ -207,13 +289,11 @@ trait MessageTrait
     }
 
     /**
-     * @see https://tools.ietf.org/html/rfc7230#section-3.2
+     * @see https://datatracker.ietf.org/doc/html/rfc7230#section-3.2
      *
      * @param mixed $header
-     *
-     * @return void
      */
-    private function assertHeader($header)
+    private function assertHeader($header): void
     {
         if (!is_string($header)) {
             throw new \InvalidArgumentException(sprintf(
@@ -222,26 +302,32 @@ trait MessageTrait
             ));
         }
 
-        if ($header === '') {
-            throw new \InvalidArgumentException('Header name can not be empty.');
-        }
-
-        if (! preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/', $header)) {
+        if (!preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/D', $header)) {
             throw new \InvalidArgumentException(
-                sprintf(
-                    '"%s" is not valid header name',
-                    $header
-                )
+                sprintf('"%s" is not valid header name.', $header)
             );
         }
     }
 
     /**
-     * @param string $value
-     *
-     * @return void
-     *
-     * @see https://tools.ietf.org/html/rfc7230#section-3.2
+     * @param mixed $version
+     */
+    private function assertProtocolVersion($version): void
+    {
+        if (is_string($version)) {
+            $this->assertNoLineSeparators($version, 'Protocol version');
+        }
+    }
+
+    private function assertNoLineSeparators(string $value, string $field): void
+    {
+        if (strpbrk($value, "\r\n") !== false) {
+            throw new \InvalidArgumentException($field.' must not contain CR or LF characters.');
+        }
+    }
+
+    /**
+     * @see https://datatracker.ietf.org/doc/html/rfc7230#section-3.2
      *
      * field-value    = *( field-content / obs-fold )
      * field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
@@ -250,7 +336,7 @@ trait MessageTrait
      * obs-text       = %x80-FF
      * obs-fold       = CRLF 1*( SP / HTAB )
      */
-    private function assertValue($value)
+    private function assertValue(string $value): void
     {
         // The regular expression intentionally does not support the obs-fold production, because as
         // per RFC 7230#3.2.4:
@@ -263,8 +349,10 @@ trait MessageTrait
         // Clients must not send a request with line folding and a server sending folded headers is
         // likely very rare. Line folding is a fairly obscure feature of HTTP/1.1 and thus not accepting
         // folding is not likely to break any legitimate use case.
-        if (! preg_match('/^[\x20\x09\x21-\x7E\x80-\xFF]*$/', $value)) {
-            throw new \InvalidArgumentException(sprintf('"%s" is not valid header value', $value));
+        if (!preg_match('/^[\x20\x09\x21-\x7E\x80-\xFF]*$/D', $value)) {
+            throw new \InvalidArgumentException(
+                sprintf('"%s" is not valid header value.', $value)
+            );
         }
     }
 }

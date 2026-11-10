@@ -1,7 +1,7 @@
 {
     "name": "guzzlehttp/guzzle",
-    "type": "library",
     "description": "Guzzle is a PHP HTTP client library",
+    "license": "MIT",
     "keywords": [
         "framework",
         "http",
@@ -9,10 +9,10 @@
         "web service",
         "curl",
         "client",
-        "HTTP client"
+        "HTTP client",
+        "PSR-7",
+        "PSR-18"
     ],
-    "homepage": "http://guzzlephp.org/",
-    "license": "MIT",
     "authors": [
         {
             "name": "Graham Campbell",
@@ -51,31 +51,59 @@
         }
     ],
     "require": {
-        "php": ">=5.5",
+        "php": "^7.2.5 || ^8.0",
         "ext-json": "*",
-        "symfony/polyfill-intl-idn": "^1.17",
-        "guzzlehttp/promises": "^1.0",
-        "guzzlehttp/psr7": "^1.9"
+        "guzzlehttp/promises": "^2.6",
+        "guzzlehttp/psr7": "^2.13.2",
+        "psr/http-client": "^1.0",
+        "symfony/deprecation-contracts": "^2.5 || ^3.0",
+        "symfony/polyfill-php80": "^1.25"
     },
     "require-dev": {
         "ext-curl": "*",
-        "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.4 || ^7.0",
-        "psr/log": "^1.1"
+        "bamarni/composer-bin-plugin": "^1.8.2",
+        "guzzle/client-integration-tests": "3.0.3",
+        "guzzlehttp/test-server": "^0.7",
+        "php-http/message-factory": "^1.1",
+        "phpunit/phpunit": "^8.5.52 || ^9.6.34",
+        "psr/log": "^1.1 || ^2.0 || ^3.0"
+    },
+    "provide": {
+        "psr/http-client-implementation": "1.0"
     },
     "suggest": {
+        "ext-curl": "Required for CURL handler support",
+        "ext-intl": "Required for Internationalized Domain Name (IDN) support",
         "psr/log": "Required for using the Log middleware"
     },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "bamarni/composer-bin-plugin": true
+    "repositories": [
+        {
+            "type": "package",
+            "package": {
+                "name": "guzzle/client-integration-tests",
+                "version": "v3.0.3",
+                "require": {
+                    "guzzlehttp/psr7": "^1.7 || ^2.0",
+                    "php": "^7.2.5 || ^8.0",
+                    "php-http/message": "^1.0 || ^2.0",
+                    "phpunit/phpunit": "^7.5.20 || ^8.5.8 || ^9.3.11",
+                    "th3n3rd/cartesian-product": "^0.3"
+                },
+                "autoload": {
+                    "psr-4": {
+                        "Http\\Client\\Tests\\": "src/"
+                    }
+                },
+                "bin": [
+                    "bin/http_test_server"
+                ],
+                "dist": {
+                    "type": "zip",
+                    "url": "https://codeload.github.com/guzzle/client-integration-tests/zip/30edbabe49dedd95e3f21d8a25438f767b653d75"
+                }
+            }
         }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "6.5-dev"
-        }
-    },
+    ],
     "autoload": {
         "psr-4": {
             "GuzzleHttp\\": "src/"
@@ -87,6 +115,19 @@
     "autoload-dev": {
         "psr-4": {
             "GuzzleHttp\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "bamarni/composer-bin-plugin": true
+        },
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "extra": {
+        "bamarni-bin": {
+            "bin-links": true,
+            "forward-command": false
         }
     }
 }

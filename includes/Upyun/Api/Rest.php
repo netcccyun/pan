@@ -47,7 +47,7 @@ class Rest
      */
     public function withFile($file)
     {
-        $stream = Psr7\stream_for($file);
+        $stream = Psr7\Utils::streamFor($file);
         $this->file = $stream;
 
         return $this;

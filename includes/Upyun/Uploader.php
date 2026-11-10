@@ -24,7 +24,7 @@ class Uploader
 
     public function upload($path, $file, $params, $withAsyncProcess)
     {
-        $stream = Psr7\stream_for($file);
+        $stream = Psr7\Utils::streamFor($file);
         $size = $stream->getSize();
         $useBlock = $this->needUseBlock($size);
 
@@ -67,7 +67,7 @@ class Uploader
         $res = $req->request('PUT', $path)
             ->withHeaders(array_merge(array(
                 'X-Upyun-Multi-Stage' => 'initiate',
-                'X-Upyun-Multi-Type' => $params['Content-Type'] ? $params['Content-Type'] : Psr7\mimetype_from_filename($path),
+                'X-Upyun-Multi-Type' => $params['Content-Type'] ? $params['Content-Type'] : Psr7\MimeType::fromFilename($path),
                 'X-Upyun-Multi-Length' => $stream->getSize(),
             ), $headers))
             ->send();
@@ -87,7 +87,7 @@ class Uploader
                     'X-Upyun-Multi-Uuid' => $uuid,
                     'X-Upyun-Part-Id' => $partId
                 ))
-                ->withFile(Psr7\stream_for($fileBlock))
+                ->withFile(Psr7\Utils::streamFor($fileBlock))
                 ->send();
 
             if ($res->getStatusCode() !== 204) {
@@ -146,7 +146,7 @@ class Uploader
             ->withHeaders(array_merge(array(
                 'X-Upyun-Multi-Disorder' => 'true',
                 'X-Upyun-Multi-Stage' => 'initiate',
-                'X-Upyun-Multi-Type' => $params['Content-Type'] ? $params['Content-Type'] : Psr7\mimetype_from_filename($path),
+                'X-Upyun-Multi-Type' => $params['Content-Type'] ? $params['Content-Type'] : Psr7\MimeType::fromFilename($path),
                 'X-Upyun-Multi-Length' => $stream->getSize(),
             ), $headers))
             ->send();
@@ -167,7 +167,7 @@ class Uploader
                         'X-Upyun-Multi-Uuid' => $uuid,
                         'X-Upyun-Part-Id' => $i
                     ))
-                    ->withFile(Psr7\stream_for($fileBlock))
+                    ->withFile(Psr7\Utils::streamFor($fileBlock))
                     ->toRequest();
             }
         };

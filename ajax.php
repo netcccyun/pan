@@ -58,7 +58,7 @@ case 'pre_upload':
 		}else{
 			$ipcount=$DB->getColumn("SELECT count(*) from pre_file WHERE ip='$clientip' AND addtime>='".$thisday."'");
 		}
-		if($ipcount>$conf['upload_limit']){
+		if($ipcount>=$conf['upload_limit']){
 			exit('{"code":-1,"msg":"你今天上传文件的数量已超过限制"}');
 		}
 	}
@@ -104,6 +104,7 @@ case 'upload_part':
 	if(!isset($_FILES['file']))exit('{"code":-1,"msg":"请选择文件"}');
 	if(!$_POST['csrf_token'] || $_POST['csrf_token']!=$_SESSION['csrf_token'])exit('{"code":-1,"msg":"CSRF TOKEN ERROR"}');
 	if($conf['forcelogin']==1 && !$islogin2)exit('{"code":-1,"msg":"请先登录"}');
+	if($_FILES['file']['error']!=UPLOAD_ERR_OK || !is_uploaded_file($_FILES['file']['tmp_name']))exit('{"code":-1,"msg":"文件上传失败，错误码：'.intval($_FILES['file']['error']).'"}');
 	$chunk = intval($_POST['chunk']);
 	$hash = trim($_POST['hash']);
 	if(!$_SESSION['upload'] || !$_SESSION['upload']['hash'] || $_SESSION['upload']['hash']!=$hash){
@@ -112,6 +113,7 @@ case 'upload_part':
 	if(!preg_match('/^[0-9a-z]{32}$/i', $hash))exit('{"code":-1,"msg":"hash error"}');
 	$chunks = intval($_SESSION['upload']['chunks']);
 	$ext = $_SESSION['upload']['ext'];
+	$size = $_SESSION['upload']['size'];
 	if($chunks > 1){
 		$tempFile = sys_get_temp_dir() . '/' . $hash. '.part'.$chunk;
 		if(!move_uploaded_file($_FILES['file']['tmp_name'], $tempFile)){
@@ -121,6 +123,14 @@ case 'upload_part':
 			$savePathTemp = file_part_merge($hash, $chunks);
 			$real_hash = md5_file($savePathTemp);
 			$real_size = filesize($savePathTemp);
+			if($real_size != $size){
+				unlink($savePathTemp);
+				exit('{"code":-1,"msg":"文件大小校验失败"}');
+			}
+			if($real_hash != $hash){
+				unlink($savePathTemp);
+				exit('{"code":-1,"msg":"文件MD5校验失败"}');
+			}
 			$result = $stor->savefile($hash, $savePathTemp, minetype($ext));
 			if(!$result)exit('{"code":-1,"msg":"文件上传失败","error":"stor","errmsg":"'.$stor->errmsg().'"}');
 		}else{
@@ -130,16 +140,14 @@ case 'upload_part':
 	}else{
 		$real_hash = md5_file($_FILES['file']['tmp_name']);
 		$real_size = filesize($_FILES['file']['tmp_name']);
+		if($real_size != $size){
+			exit('{"code":-1,"msg":"文件大小校验失败"}');
+		}
+		if($real_hash != $hash){
+			exit('{"code":-1,"msg":"文件MD5校验失败"}');
+		}
 		$result = $stor->upload($hash, $_FILES['file']['tmp_name'], minetype($ext));
 		if(!$result)exit('{"code":-1,"msg":"文件上传失败","error":"stor","errmsg":"'.$stor->errmsg().'"}');
-	}
-
-	$size = $_SESSION['upload']['size'];
-	if($real_size != $size){
-		exit('{"code":-1,"msg":"文件大小校验失败"}');
-	}
-	if($real_hash != $hash){
-		exit('{"code":-1,"msg":"文件MD5校验失败"}');
 	}
 
 	$name = $_SESSION['upload']['name'];
@@ -154,7 +162,7 @@ case 'upload_part':
 		exit(json_encode($result));
 	}
 
-	$sds = $DB->exec("INSERT INTO `pre_file` (`name`,`type`,`size`,`hash`,`addtime`,`ip`,`hide`,`pwd`,`uid`) values (:name,:type,:size,:hash,NOW(),:ip,:hide,:pwd,:uid)", [':name'=>$name, ':type'=>$ext, ':size'=>$size, ':hash'=>$hash, ':ip'=>$clientip, ':hide'=>$hide, ':pwd'=>$pwd, ':uid'=>($uid?$uid:0)]);
+	$sds = $DB->exec("INSERT INTO `pre_file` (`name`,`type`,`size`,`hash`,`addtime`,`ip`,`hide`,`pwd`,`uid`) values (:name,:type,:size,:hash,NOW(),:ip,:hide,:pwd,:uid)", [':name'=>$name, ':type'=>$ext, ':size'=>$size, ':hash'=>$hash, ':ip'=>$clientip, ':hide'=>$hide, ':pwd'=>$pwd, ':uid'=>($islogin2?$uid:0)]);
 	if(!$sds)exit('{"code":-1,"msg":"上传失败'.$DB->error().'","error":"database"}');
 	$id = $DB->lastInsertId();
 
@@ -203,7 +211,7 @@ case 'complete_upload':
 		exit(json_encode($result));
 	}
 
-	$sds = $DB->exec("INSERT INTO `pre_file` (`name`,`type`,`size`,`hash`,`addtime`,`ip`,`hide`,`pwd`,`uid`) values (:name,:type,:size,:hash,NOW(),:ip,:hide,:pwd,:uid)", [':name'=>$name, ':type'=>$ext, ':size'=>$size, ':hash'=>$hash, ':ip'=>$clientip, ':hide'=>$hide, ':pwd'=>$pwd, ':uid'=>($uid?$uid:0)]);
+	$sds = $DB->exec("INSERT INTO `pre_file` (`name`,`type`,`size`,`hash`,`addtime`,`ip`,`hide`,`pwd`,`uid`) values (:name,:type,:size,:hash,NOW(),:ip,:hide,:pwd,:uid)", [':name'=>$name, ':type'=>$ext, ':size'=>$size, ':hash'=>$hash, ':ip'=>$clientip, ':hide'=>$hide, ':pwd'=>$pwd, ':uid'=>($islogin2?$uid:0)]);
 	if(!$sds)exit('{"code":-1,"msg":"上传失败'.$DB->error().'","error":"database"}');
 	$id = $DB->lastInsertId();
 

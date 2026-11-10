@@ -21,13 +21,14 @@ case 'getcount':
 	exit(json_encode($result));
 break;
 case 'set':
-	if(isset($_POST['green_label_porn'])){
+	if(isset($_POST['green_label_porn']) && is_array($_POST['green_label_porn'])){
 		$_POST['green_label_porn'] = implode(',',$_POST['green_label_porn']);
 	}
-	if(isset($_POST['green_label_terrorism'])){
+	if(isset($_POST['green_label_terrorism']) && is_array($_POST['green_label_terrorism'])){
 		$_POST['green_label_terrorism'] = implode(',',$_POST['green_label_terrorism']);
 	}
 	foreach($_POST as $k=>$v){
+		if (in_array($k, ['admin_user', 'admin_pwd', 'syskey'])) continue;
 		saveSetting($k, $v);
 	}
 	exit('{"code":0,"msg":"succ"}');

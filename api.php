@@ -10,6 +10,7 @@ function showresult($arr, $format='json'){
 		exit(json_encode($arr));
 	}elseif($format == 'jsonp'){
 		$callback = isset($_POST['callback'])?$_POST['callback']:'callback';
+		if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_.]*$/', $callback)) $callback = 'callback';
 		@header('Content-Type: application/javascript; charset=UTF-8');
 		exit($callback.'('.json_encode($arr).')');
 	}else{
@@ -23,9 +24,9 @@ echo '<html>
 <title>文件上传页面</title>
 </head>
 <body>
-<form action="'.$backurl.'" method="post">
-<input name="file" type="hidden" value="'.$arr['downurl'].'" />
-<input name="type" type="hidden" value="'.$arr['type'].'" />
+<form action="'.htmlspecialchars($backurl).'" method="post">
+<input name="file" type="hidden" value="'.htmlspecialchars($arr['downurl']).'" />
+<input name="type" type="hidden" value="'.htmlspecialchars($arr['type']).'" />
 <input name="name" type="hidden" value="'.$arr['name'].'" />
 <input name="submit" type="submit" value="下一步" />
 </form>
@@ -42,11 +43,12 @@ if(!$conf['api_open'])showresult(['code'=>-4, 'msg'=>'当前站点未开启上�
 if(!empty($conf['api_referer'])){
 	$referers = explode('|',$conf['api_referer']);
 	$url_arr = parse_url($_SERVER['HTTP_REFERER']);
-	if(!in_array($url_arr['host'], $url_arr))showresult(['code'=>-4, 'msg'=>'来源地址不正确']);
+	if(!$url_arr || !isset($url_arr['host']) || !in_array($url_arr['host'], $referers))showresult(['code'=>-4, 'msg'=>'来源地址不正确']);
 }
 
 
 if(!isset($_FILES['file']))showresult(['code'=>-1, 'msg'=>'请选择文件']);
+if($_FILES['file']['error']!=UPLOAD_ERR_OK || !is_uploaded_file($_FILES['file']['tmp_name']))showresult(['code'=>-1, 'msg'=>'文件上传失败，错误码：'.intval($_FILES['file']['error'])]);
 $name=trim(htmlspecialchars($_FILES['file']['name']));
 $size=intval($_FILES['file']['size']);
 $hide = $_POST['show']==1?0:1;

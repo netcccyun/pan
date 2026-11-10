@@ -1,10 +1,12 @@
 <?php
-if (version_compare(PHP_VERSION, '7.1.0', '<')) {
-    die('require PHP >= 7.1 !');
+if (version_compare(PHP_VERSION, '8.1.0', '<')) {
+    die('require PHP >= 8.1 !');
 }
 include("./includes/common.php");
 
+$searchable = $conf['filesearch']==1;
 if(isset($_GET['m']) && $_GET['m']=='mine'){
+    $searchable = true;
     $title = '我的文件 - ' . $conf['title'];
     $htext = '我上传的文件';
     if($islogin2){
@@ -33,10 +35,10 @@ if(isset($_GET['m']) && $_GET['m']=='mine'){
     $sql = " hide=0";
     $link = '';
 }
-$kw = isset($_GET['kw'])?daddslashes(trim(strip_tags($_GET['kw']))):null;
-if($conf['filesearch']==1 && $kw){
-    $sql.=" AND name LIKE '%{$kw}%'";
-    $link .= '&kw='.$kw;
+$kw = isset($_GET['kw']) && is_string($_GET['kw'])?trim(strip_tags($_GET['kw'])):null;
+if($searchable && $kw){
+    $sql.=" AND name LIKE '%".daddslashes($kw)."%'";
+    $link .= '&kw='.urlencode($kw);
 }
 
 include SYSTEM_ROOT.'header.php';
@@ -44,10 +46,10 @@ include SYSTEM_ROOT.'header.php';
 <div class="container">
     <div class="well bs-component">
         <h2><?php echo $htext?>
-        <?php if($conf['filesearch']==1){?><span class="searchbox">
+        <?php if($searchable){?><span class="searchbox">
             <form class="form-inline" action="./" method="GET">
                 <?php if(isset($_GET['m'])){?><input name="m" type="hidden" value="<?php echo htmlspecialchars($_GET['m'])?>"><?php }?>
-				<input name="kw" class="form-control" type="search" placeholder="请输入搜索关键字" value="<?php echo $kw?>" required="">
+				<input name="kw" class="form-control" type="search" placeholder="请输入搜索关键字" value="<?php echo htmlspecialchars((string)$kw)?>" required="">
 				<button class="btn btn-default btn-raised btn-sm" type="submit"><i class="fa fa-search" aria-hidden="true"></i> 搜索</button>
 			</form>
         </span><?php }?></h2>
@@ -70,11 +72,12 @@ $numrows=$DB->getColumn("SELECT count(*) from pre_file WHERE{$sql}");
 $pagesize=15;
 $pages=ceil($numrows/$pagesize);
 $page=isset($_GET['page'])?intval($_GET['page']):1;
+if($page<1)$page=1;
 $offset=$pagesize*($page - 1);
 
 $rs=$DB->query("SELECT * FROM pre_file WHERE{$sql} ORDER BY id DESC LIMIT $offset,$pagesize");
 $i=1;
-while($res = $rs->fetch())
+while($rs && $res = $rs->fetch())
 {
 	$fileurl = './down.php/'.$res['hash'].'.'.($res['type']?$res['type']:'file');
 	$viewurl = './file.php?hash='.$res['hash'];
@@ -125,9 +128,9 @@ echo '<li class="disabled"><a>尾页</a></li>';
     </div>
 <?php include SYSTEM_ROOT.'footer.php';?>
 <?php if(!empty($conf['gonggao'])){?>
-<link href="https://s4.zstatic.net/ajax/libs/snackbarjs/1.1.0/snackbar.min.css" rel="stylesheet">
-<script src="https://s4.zstatic.net/ajax/libs/snackbarjs/1.1.0/snackbar.min.js"></script>
-<script src="https://s4.zstatic.net/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<link href="<?php echo $cdnpublic?>snackbarjs/1.1.0/snackbar.min.css" rel="stylesheet">
+<script src="<?php echo $cdnpublic?>snackbarjs/1.1.0/snackbar.min.js"></script>
+<script src="<?php echo $cdnpublic?>jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 <script>
 $(function() {
     if(!$.cookie('gonggao')){

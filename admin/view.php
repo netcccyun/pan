@@ -4,7 +4,9 @@ $nosecu=true;
 include("../includes/common.php");
 if($islogin==1){}else exit();
 
-$urlarr=explode('/',$_SERVER['PATH_INFO']);
+$url = '';
+$pwd = null;
+$urlarr=explode('/',isset($_SERVER['PATH_INFO'])?$_SERVER['PATH_INFO']:'');
 if (($length = count($urlarr)) > 1) {
 $url = $urlarr[$length-1];
 }
@@ -27,6 +29,6 @@ if ($row && $stor->exists($row['hash'])) {
     {
         $DB->exec("UPDATE `pre_file` SET `lasttime`=NOW(),`count`=`count`+1 WHERE `id`='{$row['id']}'");
         
-        file_output($hash, $row['type'], $row['size'], $row['name'], true, true);
+        file_output($row['hash'], $row['type'], $row['size'], $row['name'], true, true);
     }
 }

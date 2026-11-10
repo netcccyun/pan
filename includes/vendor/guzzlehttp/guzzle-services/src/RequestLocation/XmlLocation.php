@@ -1,7 +1,9 @@
 <?php
+
 namespace GuzzleHttp\Command\Guzzle\RequestLocation;
 
 use GuzzleHttp\Command\CommandInterface;
+use GuzzleHttp\Command\Guzzle\NonFiniteFloats;
 use GuzzleHttp\Command\Guzzle\Operation;
 use GuzzleHttp\Command\Guzzle\Parameter;
 use GuzzleHttp\Psr7;
@@ -24,8 +26,8 @@ class XmlLocation extends AbstractLocation
     /**
      * @param string $locationName Name of the location
      * @param string $contentType  Set to a non-empty string to add a
-     *     Content-Type header to a request if any XML content is added to the
-     *     body. Pass an empty string to disable the addition of the header.
+     *                             Content-Type header to a request if any XML content is added to the
+     *                             body. Pass an empty string to disable the addition of the header.
      */
     public function __construct($locationName = 'xml', $contentType = 'application/xml')
     {
@@ -34,10 +36,6 @@ class XmlLocation extends AbstractLocation
     }
 
     /**
-     * @param CommandInterface $command
-     * @param RequestInterface $request
-     * @param Parameter        $param
-     *
      * @return RequestInterface
      */
     public function visit(
@@ -58,10 +56,6 @@ class XmlLocation extends AbstractLocation
     }
 
     /**
-     * @param CommandInterface $command
-     * @param RequestInterface $request
-     * @param Operation        $operation
-     *
      * @return RequestInterface
      */
     public function after(
@@ -101,7 +95,7 @@ class XmlLocation extends AbstractLocation
         }
 
         if ($xml !== '') {
-            $request = $request->withBody(Psr7\stream_for($xml));
+            $request = $request->withBody(Psr7\Utils::streamFor($xml));
             // Don't overwrite the Content-Type if one is set
             if ($this->contentType && !$request->hasHeader('Content-Type')) {
                 $request = $request->withHeader('Content-Type', $this->contentType);
@@ -149,8 +143,8 @@ class XmlLocation extends AbstractLocation
      * Recursively build the XML body
      *
      * @param \XMLWriter $writer XML to modify
-     * @param Parameter  $param     API Parameter
-     * @param mixed      $value     Value to add
+     * @param Parameter  $param  API Parameter
+     * @param mixed      $value  Value to add
      */
     protected function addXml(\XMLWriter $writer, Parameter $param, $value)
     {
@@ -159,7 +153,7 @@ class XmlLocation extends AbstractLocation
         $name = $param->getWireName();
         $prefix = null;
         $namespace = $param->getData('xmlNamespace');
-        if (false !== strpos($name, ':')) {
+        if ($name !== null && false !== strpos($name, ':')) {
             list($prefix, $name) = explode(':', $name, 2);
         }
 
@@ -179,8 +173,10 @@ class XmlLocation extends AbstractLocation
             if (!$param->getData('xmlFlattened')) {
                 $writer->endElement();
             }
+
             return;
         }
+        $value = NonFiniteFloats::normalize($value, 'an xml location value');
         if ($param->getData('xmlAttribute')) {
             $this->writeAttribute($writer, $prefix, $name, $namespace, $value);
         } else {
@@ -191,11 +187,11 @@ class XmlLocation extends AbstractLocation
     /**
      * Write an attribute with namespace if used
      *
-     * @param  \XMLWriter $writer XMLWriter instance
-     * @param  string     $prefix    Namespace prefix if any
-     * @param  string     $name      Attribute name
-     * @param  string     $namespace The uri of the namespace
-     * @param  string     $value     The attribute content
+     * @param \XMLWriter $writer    XMLWriter instance
+     * @param string     $prefix    Namespace prefix if any
+     * @param string     $name      Attribute name
+     * @param string     $namespace The uri of the namespace
+     * @param string     $value     The attribute content
      */
     protected function writeAttribute($writer, $prefix, $name, $namespace, $value)
     {
@@ -209,11 +205,11 @@ class XmlLocation extends AbstractLocation
     /**
      * Write an element with namespace if used
      *
-     * @param  \XMLWriter $writer XML writer resource
-     * @param  string     $prefix    Namespace prefix if any
-     * @param  string     $name      Element name
-     * @param  string     $namespace The uri of the namespace
-     * @param  string     $value     The element content
+     * @param \XMLWriter  $writer    XML writer resource
+     * @param string      $prefix    Namespace prefix if any
+     * @param string      $name      Element name
+     * @param string      $namespace The uri of the namespace
+     * @param string|null $value     The element content
      */
     protected function writeElement(\XMLWriter $writer, $prefix, $name, $namespace, $value)
     {
@@ -222,20 +218,36 @@ class XmlLocation extends AbstractLocation
         } else {
             $writer->startElement($name);
         }
-        if (strpbrk($value, '<>&')) {
-            $writer->writeCData($value);
+        if ($value !== null && strpbrk($value, '<>&')) {
+            $this->writeSafeCData($writer, $value);
         } else {
             $writer->writeRaw($value);
         }
         $writer->endElement();
     }
 
+    protected function writeSafeCData(\XMLWriter $writer, $value)
+    {
+        $parts = explode(']]>', $value);
+        $last = array_pop($parts);
+
+        foreach ($parts as $part) {
+            $writer->writeCData($part.']]');
+            $writer->writeCData('>');
+        }
+
+        if ($last !== '') {
+            $writer->writeCData($last);
+        }
+    }
+
     /**
      * Create a new xml writer and start a document
      *
-     * @param  string $encoding document encoding
+     * @param string $encoding document encoding
      *
      * @return \XMLWriter the writer resource
+     *
      * @throws \RuntimeException if the document cannot be started
      */
     protected function startDocument($encoding)
@@ -267,10 +279,6 @@ class XmlLocation extends AbstractLocation
 
     /**
      * Add an array to the XML
-     *
-     * @param \XMLWriter $writer
-     * @param Parameter $param
-     * @param $value
      */
     protected function addXmlArray(\XMLWriter $writer, Parameter $param, &$value)
     {
@@ -283,10 +291,6 @@ class XmlLocation extends AbstractLocation
 
     /**
      * Add an object to the XML
-     *
-     * @param \XMLWriter $writer
-     * @param Parameter $param
-     * @param $value
      */
     protected function addXmlObject(\XMLWriter $writer, Parameter $param, &$value)
     {
@@ -309,11 +313,6 @@ class XmlLocation extends AbstractLocation
         }
     }
 
-    /**
-     * @param $value
-     * @param Parameter $param
-     * @param Operation $operation
-     */
     private function visitWithValue(
         $value,
         Parameter $param,

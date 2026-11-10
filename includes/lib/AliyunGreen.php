@@ -43,7 +43,7 @@ class HttpHelper
 		$httpResponse->setBody(curl_exec($ch));
 		$httpResponse->setStatus(curl_getinfo($ch, CURLINFO_HTTP_CODE));
 		if (curl_errno($ch)) {
-			throw new Exception('Server unreachable: Errno: ' . curl_errno($ch) . ' ' . curl_error($ch), 'SDK.ServerUnreachable');
+			throw new \Exception('Server unreachable: Errno: ' . curl_errno($ch) . ' ' . curl_error($ch));
 		}
 		curl_close($ch);
 		return $httpResponse;
@@ -115,6 +115,8 @@ class AliyunGreen {
 
 	private $headers = array();
 	private $content;
+	private $stringToBeSigned;
+	private $queryParameters = array();
 	private $dateTimeFormat = "D, d M Y H:i:s \G\M\T";
 	private static $headerSeparator = "\n";
 	private static $querySeparator = '&';
@@ -145,8 +147,8 @@ class AliyunGreen {
 		$httpResponse = HttpHelper::curl($requestUrl, $this->method, $this->content, $this->headers);
 
 		$retryTimes = 1;
-		while (500 <= $httpResponse->getStatus() && self::$autoRetry && $retryTimes < self::maxRetryNumber) {
-			$requestUrl = $request->composeUrl();
+		while (500 <= $httpResponse->getStatus() && self::$autoRetry && $retryTimes < self::$maxRetryNumber) {
+			$requestUrl = $this->composeUrl();
 
 			$httpResponse = HttpHelper::curl($requestUrl, $this->method, $this->content, $this->headers);
 

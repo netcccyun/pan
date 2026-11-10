@@ -8,7 +8,7 @@ class Local implements IStorage {
 
 	public function __construct($filepath) {
 		if($filepath && is_dir($filepath)){
-			$this->path = $filepath;
+			$this->path = rtrim($filepath, '/\\').'/';
 		}else{
 			$this->path = ROOT.'file/';
 			if(!is_dir($this->path)) mkdir($this->path);
@@ -64,9 +64,9 @@ class Local implements IStorage {
 			$finfo = finfo_open(FILEINFO_MIME_TYPE);
 			$type = finfo_file($finfo, $this->path.$name);
 			finfo_close($finfo);
-			$result['content-length'] = $type;
+			$result['content_type'] = $type;
 		}else{
-			$result['content-length'] = null;
+			$result['content_type'] = null;
 		}
 		return $result;
 	}

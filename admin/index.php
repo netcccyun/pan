@@ -29,7 +29,7 @@ $checkupdate = '//auth.cccyun.cc/app/pan.php?ver='.VERSION;
                         </div>
                         <a href="file.php">
                             <div class="panel-footer">
-                                <span class="pull-left" herf="file.php">查看详情</span>
+                                <span class="pull-left" href="file.php">查看详情</span>
                                 <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                                 <div class="clearfix"></div>
                             </div>
@@ -113,7 +113,7 @@ $checkupdate = '//auth.cccyun.cc/app/pan.php?ver='.VERSION;
                     <ul class="list-group">
                         <li class="list-group-item">
                             <b>PHP 版本：</b><?php echo phpversion() ?>
-                            <?php if(ini_get('safe_mode')) { echo '线程安全'; } else { echo '非线程安全'; } ?>
+                            <?php if(ZEND_THREAD_SAFE) { echo 'TS'; } else { echo 'NTS'; } ?>
                         </li>
                         <li class="list-group-item">
                             <b>MySQL 版本：</b><?php echo $mysqlversion ?>

@@ -1,7 +1,9 @@
 <?php
+
 namespace GuzzleHttp\Command\Guzzle\RequestLocation;
 
 use GuzzleHttp\Command\CommandInterface;
+use GuzzleHttp\Command\Guzzle\NonFiniteFloats;
 use GuzzleHttp\Command\Guzzle\Parameter;
 use GuzzleHttp\Psr7;
 use Psr\Http\Message\MessageInterface;
@@ -12,7 +14,6 @@ use Psr\Http\Message\RequestInterface;
  */
 class BodyLocation extends AbstractLocation
 {
-
     /**
      * Set the name of the location
      *
@@ -24,10 +25,6 @@ class BodyLocation extends AbstractLocation
     }
 
     /**
-     * @param CommandInterface $command
-     * @param RequestInterface $request
-     * @param Parameter        $param
-     *
      * @return MessageInterface
      */
     public function visit(
@@ -38,12 +35,12 @@ class BodyLocation extends AbstractLocation
         $oldValue = $request->getBody()->getContents();
 
         $value = $command[$param->getName()];
-        $value = $param->getName() . '=' . $param->filter($value);
+        $value = $param->getName().'='.NonFiniteFloats::normalize($param->filter($value), 'a body location value');
 
         if ($oldValue !== '') {
-            $value = $oldValue . '&' . $value;
+            $value = $oldValue.'&'.$value;
         }
 
-        return $request->withBody(Psr7\stream_for($value));
+        return $request->withBody(Psr7\Utils::streamFor($value));
     }
 }

@@ -1,14 +1,5 @@
 # Guzzle Services
 
-[![License](https://poser.pugx.org/guzzlehttp/guzzle-services/license)](https://packagist.org/packages/guzzlehttp/guzzle-services)
-[![Build Status](https://travis-ci.org/guzzle/guzzle-services.svg?branch=master)](https://travis-ci.org/guzzle/guzzle-services)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/guzzle/guzzle-services/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/guzzle/guzzle-services/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/guzzle/guzzle-services/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/guzzle/guzzle-services/?branch=master)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/b08be676-b209-40b7-a6df-b6d13e8dff62/mini.png)](https://insight.sensiolabs.com/projects/b08be676-b209-40b7-a6df-b6d13e8dff62)
-[![Latest Stable Version](https://poser.pugx.org/guzzlehttp/guzzle-services/v/stable)](https://packagist.org/packages/guzzlehttp/guzzle-services)
-[![Latest Unstable Version](https://poser.pugx.org/guzzlehttp/guzzle-services/v/unstable)](https://packagist.org/packages/guzzlehttp/guzzle-services)
-[![Total Downloads](https://poser.pugx.org/guzzlehttp/guzzle-services/downloads)](https://packagist.org/packages/guzzlehttp/guzzle-services)
-
 Provides an implementation of the Guzzle Command library that uses Guzzle service descriptions to describe web services, serialize requests, and parse responses into easy to use model structures.
 
 ```php
@@ -57,48 +48,11 @@ echo $result['args']['foo'];
 
 This project can be installed using Composer:
 
-``composer require guzzlehttp/guzzle-services``
-
-For **Guzzle 5**, use ``composer require guzzlehttp/guzzle-services:0.6``.
-
-**Note:** If Composer is not installed [globally](https://getcomposer.org/doc/00-intro.md#globally) then you may need to run the preceding Composer commands using ``php composer.phar`` (where ``composer.phar`` is the path to your copy of Composer), instead of just ``composer``.
-
-## Plugins
-
-* Load Service description from file [https://github.com/gimler/guzzle-description-loader]
-
-## Transition guide from Guzzle 5.0 to 6.0
- 
-### Change regarding PostField and PostFile
-
-The request locations `postField` and `postFile` were removed in favor of `formParam` and `multipart`. If your description looks like
- 
-```php
-[
-    'baseUri' => 'http://httpbin.org/',
-    'operations' => [
-        'testing' => [
-            'httpMethod' => 'GET',
-            'uri' => '/get{?foo}',
-            'responseModel' => 'getResponse',
-            'parameters' => [
-                'foo' => [
-                    'type' => 'string',
-                    'location' => 'postField'
-                ],
-                'bar' => [
-                    'type' => 'string',
-                    'location' => 'postFile'
-                ]
-            ]
-        ]
-    ],
-]
+```bash
+composer require guzzlehttp/guzzle-services
 ```
 
-you need to change `postField` to `formParam` and `postFile` to `multipart`. 
-
-More documentation coming soon.
+See [UPGRADING.md](UPGRADING.md) for notes on upgrading from 0.6 to 1.0.
 
 ## Cookbook
 
@@ -121,9 +75,23 @@ use GuzzleHttp\Command\Guzzle\RequestLocation\QueryLocation;
 use GuzzleHttp\Command\Guzzle\QuerySerializer\Rfc3986Serializer;
 use GuzzleHttp\Command\Guzzle\Serializer;
 
-$queryLocation   = new QueryLocation('query', new Rfc3986Serializer(true));
-$serializer      = new Serializer($description, ['query' => $queryLocation]);
-$guzzleClient    = new GuzzleClient($client, $description, $serializer);
+$queryLocation = new QueryLocation('query', new Rfc3986Serializer(true));
+$serializer = new Serializer($description, ['query' => $queryLocation]);
+$guzzleClient = new GuzzleClient($client, $description, $serializer);
 ```
 
 You can also create your own serializer if you have specific needs.
+
+## Security
+
+If you discover a security vulnerability within this package, please send an email to security@tidelift.com. All security vulnerabilities will be promptly addressed. Please do not disclose security-related issues publicly until a fix has been announced. Please see [Security Policy](https://github.com/guzzle/guzzle-services/security/policy) for more information.
+
+## License
+
+Guzzle is made available under the MIT License (MIT). Please see [License File](LICENSE) for more information.
+
+## For Enterprise
+
+Available as part of the Tidelift Subscription
+
+The maintainers of Guzzle and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/packagist-guzzlehttp-guzzle-services?utm_source=packagist-guzzlehttp-guzzle-services&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)

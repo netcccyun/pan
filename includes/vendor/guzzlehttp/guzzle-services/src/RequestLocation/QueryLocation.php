@@ -1,4 +1,5 @@
 <?php
+
 namespace GuzzleHttp\Command\Guzzle\RequestLocation;
 
 use GuzzleHttp\Command\CommandInterface;
@@ -22,10 +23,9 @@ class QueryLocation extends AbstractLocation
     /**
      * Set the name of the location
      *
-     * @param string                        $locationName
-     * @param QuerySerializerInterface|null $querySerializer
+     * @param string $locationName
      */
-    public function __construct($locationName = 'query', QuerySerializerInterface $querySerializer = null)
+    public function __construct($locationName = 'query', ?QuerySerializerInterface $querySerializer = null)
     {
         parent::__construct($locationName);
 
@@ -33,10 +33,6 @@ class QueryLocation extends AbstractLocation
     }
 
     /**
-     * @param CommandInterface $command
-     * @param RequestInterface $request
-     * @param Parameter        $param
-     *
      * @return RequestInterface
      */
     public function visit(
@@ -45,7 +41,7 @@ class QueryLocation extends AbstractLocation
         Parameter $param
     ) {
         $uri = $request->getUri();
-        $query = Psr7\parse_query($uri->getQuery());
+        $query = Psr7\Query::parse($uri->getQuery());
 
         $query[$param->getWireName()] = $this->prepareValue(
             $command[$param->getName()],
@@ -58,10 +54,6 @@ class QueryLocation extends AbstractLocation
     }
 
     /**
-     * @param CommandInterface $command
-     * @param RequestInterface $request
-     * @param Operation        $operation
-     *
      * @return RequestInterface
      */
     public function after(
@@ -74,7 +66,7 @@ class QueryLocation extends AbstractLocation
             foreach ($command->toArray() as $key => $value) {
                 if (!$operation->hasParam($key)) {
                     $uri = $request->getUri();
-                    $query = Psr7\parse_query($uri->getQuery());
+                    $query = Psr7\Query::parse($uri->getQuery());
 
                     $query[$key] = $this->prepareValue(
                         $value,

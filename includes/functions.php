@@ -39,39 +39,39 @@ function get_curl($url, $post=0, $referer=0, $cookie=0, $header=0, $ua=0, $nobao
 	return $ret;
 }
 function real_ip($type=0){
-$ip = $_SERVER['REMOTE_ADDR'];
-if($type<=0 && isset($_SERVER['HTTP_X_FORWARDED_FOR']) && preg_match_all('#\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}#s', $_SERVER['HTTP_X_FORWARDED_FOR'], $matches)) {
-	foreach ($matches[0] AS $xip) {
-		if (filter_var($xip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-			$ip = $xip;
-			break;
+	$ip = $_SERVER['REMOTE_ADDR'];
+	if($type<=0 && isset($_SERVER['HTTP_X_FORWARDED_FOR']) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+		$ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+		foreach ($ips as $xip) {
+			$xip = trim($xip);
+			if (filter_var($xip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+				$ip = $xip;
+				break;
+			}
 		}
+	} elseif ($type<=0 && isset($_SERVER['HTTP_CLIENT_IP']) && filter_var($_SERVER['HTTP_CLIENT_IP'], FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+		$ip = $_SERVER['HTTP_CLIENT_IP'];
+	} elseif ($type<=1 && isset($_SERVER['HTTP_CF_CONNECTING_IP']) && filter_var($_SERVER['HTTP_CF_CONNECTING_IP'], FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+		$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+	} elseif ($type<=1 && isset($_SERVER['HTTP_X_REAL_IP']) && filter_var($_SERVER['HTTP_X_REAL_IP'], FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+		$ip = $_SERVER['HTTP_X_REAL_IP'];
 	}
-} elseif ($type<=0 && isset($_SERVER['HTTP_CLIENT_IP']) && filter_var($_SERVER['HTTP_CLIENT_IP'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-	$ip = $_SERVER['HTTP_CLIENT_IP'];
-} elseif ($type<=1 && isset($_SERVER['HTTP_CF_CONNECTING_IP']) && filter_var($_SERVER['HTTP_CF_CONNECTING_IP'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-	$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
-} elseif ($type<=1 && isset($_SERVER['HTTP_X_REAL_IP']) && filter_var($_SERVER['HTTP_X_REAL_IP'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-	$ip = $_SERVER['HTTP_X_REAL_IP'];
-}
-return $ip;
+	return $ip;
 }
 function get_ip_city($ip)
 {
-	$url = 'http://whois.pconline.com.cn/ipJson.jsp?json=true&ip=';
-	$city = get_curl($url . $ip);
-	$city = mb_convert_encoding($city, "UTF-8", "GB2312");
-	$city = json_decode($city, true);
-	if ($city['city']) {
-		$location = $city['pro'].$city['city'];
-	} else {
-		$location = $city['pro'];
+    $url = 'https://www.bt.cn/api/panel/get_ip_info?ip=' . $ip;
+    $response = get_curl($url);
+    $result = json_decode($response, true);
+	if(isset($result[$ip])){
+		$data = $result[$ip];
+		if($data['country'] == '中国'){
+			return $data['province'].$data['city'];
+		}else{
+			return $data['country'].$data['province'].$data['city'];
+		}
 	}
-	if($location){
-		return $location;
-	}else{
-		return false;
-	}
+	return false;
 }
 function daddslashes($string) {
 	if(is_array($string)) {
@@ -84,28 +84,17 @@ function daddslashes($string) {
 	return $string;
 }
 
-function strexists($string, $find) {
-	return !(strpos($string, $find) === FALSE);
+function checkmobile()
+{
+    $useragent = strtolower($_SERVER['HTTP_USER_AGENT']);
+    $ualist = array('android', 'midp', 'nokia', 'mobile', 'iphone', 'ipod', 'blackberry', 'windows phone');
+    foreach ($ualist as $ua) {
+        if (str_contains($useragent, $ua)) return true;
+    }
+    if (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], "VND.WAP") || isset($_SERVER['HTTP_VIA']) && str_contains($_SERVER['HTTP_VIA'], "wap")) return true;
+    return false;
 }
 
-function dstrpos($string, $arr) {
-	if(empty($string)) return false;
-	foreach((array)$arr as $v) {
-		if(strpos($string, $v) !== false) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function checkmobile() {
-	$useragent = strtolower($_SERVER['HTTP_USER_AGENT']);
-	$ualist = array('android', 'midp', 'nokia', 'mobile', 'iphone', 'ipod', 'blackberry', 'windows phone');
-	if((dstrpos($useragent, $ualist) || strexists($_SERVER['HTTP_ACCEPT'], "VND.WAP") || strexists($_SERVER['HTTP_VIA'],"wap")))
-		return true;
-	else
-		return false;
-}
 function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0) {
 	$ckey_length = 4;
 	$key = md5($key);
@@ -533,6 +522,7 @@ function writeLog($text) {
 }
 
 function get_file_ext($name){
+	$ext='';
 	$extension=explode('.',$name);
 	if (($length = count($extension)) > 1) {
 		$ext = strtolower($extension[$length - 1]);

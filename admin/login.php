@@ -9,8 +9,8 @@ define('IN_ADMIN', true);
 include("../includes/common.php");
 if(isset($_POST['user']) && isset($_POST['pass'])){
 	if(!$_SESSION['pass_error'])$_SESSION['pass_error']=0;
-	$user=daddslashes($_POST['user']);
-	$pass=daddslashes($_POST['pass']);
+	$user=(string)$_POST['user'];
+	$pass=(string)$_POST['pass'];
 	$code=daddslashes($_POST['code']);
 	if ($verifycode==1 && (!$code || strtolower($code) != $_SESSION['vc_code'])) {
 		unset($_SESSION['vc_code']);
@@ -19,7 +19,7 @@ if(isset($_POST['user']) && isset($_POST['pass'])){
 	}elseif($_SESSION['pass_error']>5) {
 		@header('Content-Type: text/html; charset=UTF-8');
 		exit("<script language='javascript'>alert('用户名或密码不正确！');history.go(-1);</script>");
-	}elseif($user==$conf['admin_user'] && $pass==$conf['admin_pwd']) {
+	}elseif($user===$conf['admin_user'] && $pass===$conf['admin_pwd']) {
 		$session=md5($user.$pass.$password_hash);
 		$expiretime=time()+2592000;
 		$token=authcode("{$user}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);
@@ -48,8 +48,8 @@ $title='用户登录';
 	<meta name="renderer" content="webkit">
 	<meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;">
 	<title>管理员登录</title>
-	<link href="https://s4.zstatic.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
-	<link href="https://s4.zstatic.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+	<link href="../assets/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
+	<link href="../assets/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
 	<style>
 body{background:linear-gradient(to right,#49bdad,#6a67c7) fixed}
 .form-horizontal{background-color:#fff;text-align:center;padding:50px 30px 30px;box-shadow:12px 12px 0 0 rgba(0,0,0,.3);margin-top:50%}

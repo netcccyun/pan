@@ -44,6 +44,7 @@ class Oss implements IStorage {
 	}
 
 	public function downfile($name, $range = false) {
+		$options = null;
 		if($range){
 			$options['range'] = $range[0].'-'.$range[1];
 		}

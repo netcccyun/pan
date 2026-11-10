@@ -46,11 +46,11 @@ if($step==3){
         $config="<?php
 /*数据库配置*/
 \$dbconfig=array(
-    'host' => '{$host}', //数据库服务器
-    'port' => {$port}, //数据库端口
-    'user' => '{$user}', //数据库用户名
-    'pwd' => '{$pwd}', //数据库密码
-    'dbname' => '{$database}' //数据库名
+    'host' => ".var_export((string)$host, true).", //数据库服务器
+    'port' => ".intval($port).", //数据库端口
+    'user' => ".var_export((string)$user, true).", //数据库用户名
+    'pwd' => ".var_export((string)$pwd, true).", //数据库密码
+    'dbname' => ".var_export((string)$database, true)." //数据库名
 );
     ";
     }

@@ -1,4 +1,5 @@
 <?php
+
 namespace GuzzleHttp\Command\Guzzle;
 
 use GuzzleHttp\Command\ToArrayInterface;
@@ -21,8 +22,8 @@ class SchemaValidator
 
     /**
      * @param bool $castIntegerToStringType Set to true to convert integers
-     *     into strings when a required type is a string and the input value is
-     *     an integer. Defaults to true.
+     *                                      into strings when a required type is a string and the input value is
+     *                                      an integer. Defaults to true.
      */
     public function __construct($castIntegerToStringType = true)
     {
@@ -30,8 +31,6 @@ class SchemaValidator
     }
 
     /**
-     * @param Parameter $param
-     * @param $value
      * @return bool
      */
     public function validate(Parameter $param, &$value)
@@ -41,10 +40,10 @@ class SchemaValidator
 
         if (empty($this->errors)) {
             return true;
-        } else {
-            sort($this->errors);
-            return false;
         }
+        sort($this->errors);
+
+        return false;
     }
 
     /**
@@ -60,8 +59,8 @@ class SchemaValidator
     /**
      * From the allowable types, determine the type that the variable matches
      *
-     * @param string|array $type Parameter type
-     * @param mixed $value Value to determine the type
+     * @param string|array $type  Parameter type
+     * @param mixed        $value Value to determine the type
      *
      * @return string|false Returns the matching type on
      */
@@ -76,7 +75,7 @@ class SchemaValidator
                 return 'object';
             } elseif ($t == 'array' && is_array($value)) {
                 return 'array';
-            } elseif ($t == 'integer' && is_integer($value)) {
+            } elseif ($t == 'integer' && is_int($value)) {
                 return 'integer';
             } elseif ($t == 'boolean' && is_bool($value)) {
                 return 'boolean';
@@ -97,11 +96,11 @@ class SchemaValidator
     /**
      * Recursively validate a parameter
      *
-     * @param Parameter $param  API parameter being validated
-     * @param mixed     $value  Value to validate and validate. The value may
-     *                          change during this validate.
-     * @param string    $path   Current validation path (used for error reporting)
-     * @param int       $depth  Current depth in the validation validate
+     * @param Parameter $param API parameter being validated
+     * @param mixed     $value Value to validate and validate. The value may
+     *                         change during this validate.
+     * @param string    $path  Current validation path (used for error reporting)
+     * @param int       $depth Current depth in the validation validate
      *
      * @return bool Returns true if valid, or false if invalid
      */
@@ -139,6 +138,7 @@ class SchemaValidator
             // Convert the value to an array
             if (!$valueIsArray && $value instanceof ToArrayInterface) {
                 $value = $value->toArray();
+                $valueIsArray = true;
             }
 
             if ($valueIsArray) {
@@ -146,6 +146,7 @@ class SchemaValidator
                 // indexed
                 if (isset($value[0])) {
                     $this->errors[] = "{$path} must be an array of properties. Got a numerically indexed array.";
+
                     return false;
                 }
                 $traverse = true;
@@ -208,24 +209,24 @@ class SchemaValidator
                     $valueIsArray = false;
                 }
             }
-
         } elseif ($type == 'array' && $valueIsArray && $param->getItems()) {
             foreach ($value as $i => &$item) {
                 // Validate each item in an array against the items attribute of the schema
-                $this->recursiveProcess($param->getItems(), $item, $path . "[{$i}]", $depth + 1);
+                $this->recursiveProcess($param->getItems(), $item, $path."[{$i}]", $depth + 1);
             }
         }
 
         // If the value is required and the type is not null, then there is an
         // error if the value is not set
         if ($required && $value === null && $type != 'null') {
-            $message = "{$path} is " . ($param->getType()
-                ? ('a required ' . implode(' or ', (array) $param->getType()))
+            $message = "{$path} is ".($param->getType()
+                ? ('a required '.implode(' or ', (array) $param->getType()))
                 : 'required');
             if ($param->has('description')) {
-                $message .= ': ' . $param->getDescription();
+                $message .= ': '.$param->getDescription();
             }
             $this->errors[] = $message;
+
             return false;
         }
 
@@ -235,59 +236,68 @@ class SchemaValidator
         if ($type && (!$type = $this->determineType($type, $value))) {
             if ($this->castIntegerToStringType
                 && $param->getType() == 'string'
-                && is_integer($value)
+                && is_int($value)
             ) {
                 $value = (string) $value;
             } else {
-                $this->errors[] = "{$path} must be of type " . implode(' or ', (array) $param->getType());
+                $this->errors[] = "{$path} must be of type ".implode(' or ', (array) $param->getType());
             }
         }
 
         // Perform type specific validation for strings, arrays, and integers
         if ($type == 'string') {
+            $enum = $param->getEnum();
+
             // Strings can have enums which are a list of predefined values
-            if (($enum = $param->getEnum()) && !in_array($value, $enum)) {
-                $this->errors[] = "{$path} must be one of " . implode(' or ', array_map(function ($s) {
-                        return '"' . addslashes($s) . '"';
+            if ($enum && !in_array($value, $enum)) {
+                $this->errors[] = "{$path} must be one of ".implode(' or ', array_map(function ($s) {
+                    return '"'.addslashes($s).'"';
                 }, $enum));
             }
+
+            $pattern = $param->getPattern();
+
             // Strings can have a regex pattern that the value must match
-            if (($pattern  = $param->getPattern()) && !preg_match($pattern, $value)) {
-                $this->errors[] = "{$path} must match the following regular expression: {$pattern}";
+            if ($pattern !== null && $pattern !== '') {
+                $matched = @preg_match($pattern, $value);
+
+                if ($matched === false) {
+                    $this->errors[] = "{$path} could not be matched against {$pattern}: ".preg_last_error_msg();
+                } elseif ($matched === 0) {
+                    $this->errors[] = "{$path} must match the following regular expression: {$pattern}";
+                }
             }
 
             $strLen = null;
-            if ($min = $param->getMinLength()) {
+            if (null !== ($min = $param->getMinLength())) {
                 $strLen = strlen($value);
                 if ($strLen < $min) {
                     $this->errors[] = "{$path} length must be greater than or equal to {$min}";
                 }
             }
-            if ($max = $param->getMaxLength()) {
-                if (($strLen ?: strlen($value)) > $max) {
+            if (null !== ($max = $param->getMaxLength())) {
+                if (($strLen !== null ? $strLen : strlen($value)) > $max) {
                     $this->errors[] = "{$path} length must be less than or equal to {$max}";
                 }
             }
-
         } elseif ($type == 'array') {
             $size = null;
-            if ($min = $param->getMinItems()) {
+            if (null !== ($min = $param->getMinItems())) {
                 $size = count($value);
                 if ($size < $min) {
                     $this->errors[] = "{$path} must contain {$min} or more elements";
                 }
             }
-            if ($max = $param->getMaxItems()) {
-                if (($size ?: count($value)) > $max) {
+            if (null !== ($max = $param->getMaxItems())) {
+                if (($size !== null ? $size : count($value)) > $max) {
                     $this->errors[] = "{$path} must contain {$max} or fewer elements";
                 }
             }
-
         } elseif ($type == 'integer' || $type == 'number' || $type == 'numeric') {
-            if (($min = $param->getMinimum()) && $value < $min) {
+            if (null !== ($min = $param->getMinimum()) && $value < $min) {
                 $this->errors[] = "{$path} must be greater than or equal to {$min}";
             }
-            if (($max = $param->getMaximum()) && $value > $max) {
+            if (null !== ($max = $param->getMaximum()) && $value > $max) {
                 $this->errors[] = "{$path} must be less than or equal to {$max}";
             }
         }

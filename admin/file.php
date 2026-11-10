@@ -76,6 +76,7 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 	</div>
 </div>
   <div class="container" style="padding-top:70px;">
+  <div class="row">
     <div class="col-xs-12 center-block" style="float: none;">
 	    <form onsubmit="return searchSubmit()" method="GET" class="form-inline" id="searchToolbar">
 	        <div class="form-group">
@@ -107,9 +108,10 @@ if($islogin==1){}else exit("<script language='javascript'>window.location.href='
 	  	</table>
     </div>
   </div>
-<script src="https://s4.zstatic.net/ajax/libs/layer/3.1.1/layer.min.js"></script>
-<script src="https://s4.zstatic.net/ajax/libs/bootstrap-table/1.21.4/bootstrap-table.min.js"></script>
-<script src="https://s4.zstatic.net/ajax/libs/bootstrap-table/1.21.4/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
+</div>
+<script src="../assets/libs/layer/3.1.1/layer.js"></script>
+<script src="../assets/js/bootstrap-table.min.js"></script>
+<script src="../assets/js/bootstrap-table-page-jump-to.min.js"></script>
 <script src="../assets/js/custom.js"></script>
 <script>
 $(document).ready(function(){

@@ -1,4 +1,5 @@
 <?php
+
 namespace GuzzleHttp\Command\Guzzle;
 
 use GuzzleHttp\Psr7\Uri;
@@ -35,7 +36,7 @@ class Description implements DescriptionInterface
     /**
      * @param array $config  Service description data
      * @param array $options Custom options to apply to the description
-     *     - formatter: Can provide a custom SchemaFormatter class
+     *                       - formatter: Can provide a custom SchemaFormatter class
      *
      * @throws \InvalidArgumentException
      */
@@ -55,6 +56,12 @@ class Description implements DescriptionInterface
         // Set the baseUri
         // Account for the old style of using baseUrl
         if (isset($config['baseUrl'])) {
+            \trigger_deprecation(
+                'guzzlehttp/guzzle-services',
+                '1.6',
+                'The "baseUrl" service description option is deprecated; use "baseUri" instead.'
+            );
+
             $config['baseUri'] = $config['baseUrl'];
         }
         $this->baseUri = isset($config['baseUri']) ? new Uri($config['baseUri']) : new Uri();
@@ -132,6 +139,7 @@ class Description implements DescriptionInterface
      * @param string $name Name of the command
      *
      * @return Operation
+     *
      * @throws \InvalidArgumentException if the operation is not found
      */
     public function getOperation($name)
@@ -141,7 +149,7 @@ class Description implements DescriptionInterface
         }
 
         // Lazily create operations as they are retrieved
-        if (!($this->operations[$name] instanceof Operation)) {
+        if (!$this->operations[$name] instanceof Operation) {
             $this->operations[$name]['name'] = $name;
             $this->operations[$name] = new Operation($this->operations[$name], $this);
         }
@@ -155,6 +163,7 @@ class Description implements DescriptionInterface
      * @param string $id ID/name of the model to retrieve
      *
      * @return Parameter
+     *
      * @throws \InvalidArgumentException if the model is not found
      */
     public function getModel($id)
@@ -164,7 +173,7 @@ class Description implements DescriptionInterface
         }
 
         // Lazily create models as they are retrieved
-        if (!($this->models[$id] instanceof Parameter)) {
+        if (!$this->models[$id] instanceof Parameter) {
             $this->models[$id] = new Parameter(
                 $this->models[$id],
                 ['description' => $this]
@@ -250,7 +259,7 @@ class Description implements DescriptionInterface
      *
      * @param string $key Data key to retrieve or null to retrieve all extra
      *
-     * @return null|mixed
+     * @return mixed|null
      */
     public function getData($key = null)
     {
@@ -258,8 +267,8 @@ class Description implements DescriptionInterface
             return $this->extraData;
         } elseif (isset($this->extraData[$key])) {
             return $this->extraData[$key];
-        } else {
-            return null;
         }
+
+        return null;
     }
 }

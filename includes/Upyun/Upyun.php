@@ -154,7 +154,7 @@ class Upyun
 
         if (! isset($params['x-upyun-list-iter'])) {
             if (is_resource($saveHandler)) {
-                Psr7\copy_to_stream($response->getBody(), Psr7\stream_for($saveHandler));
+                Psr7\Utils::copyToStream($response->getBody(), Psr7\Utils::streamFor($saveHandler));
                 return true;
             } elseif ($saveHandler) {
                 return $response->getBody();
@@ -311,7 +311,7 @@ class Upyun
         $response = $req->request('PUT', $target)
             ->withHeader('X-Upyun-Copy-Source', $source)
             ->send();
-        return util::isSuccess($response->getStatusCode());
+        return Util::isSuccess($response->getStatusCode());
     }
 
     /**
@@ -329,7 +329,7 @@ class Upyun
         $response = $req->request('PUT', $target)
             ->withHeader('X-Upyun-Move-Source', $source)
             ->send();
-        return util::isSuccess($response->getStatusCode());
+        return Util::isSuccess($response->getStatusCode());
     }
 
     /**
