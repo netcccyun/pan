@@ -1,0 +1,1 @@
+import{t as e}from"./Ci3tjYhl.js";import{n as t}from"./CAHAFm6s.js";import{V as n,f as r,x as i}from"./Cqv_khrX.js";var a=i({__name:`mine`,setup(i){return t({title:`我的文件`}),(t,i)=>{let a=e;return n(),r(a,{mine:``})}}});export{a as default};

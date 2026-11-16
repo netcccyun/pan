@@ -6,7 +6,30 @@ class Local implements IStorage {
 	private $path = null;
 	private $errmsg;
 
-	public function __construct($filepath) {
+	public static function info() {
+		return [
+			'name' => '本地存储',
+			'icon' => 'i-lucide-hard-drive',
+			'cloud' => false,
+			'range' => true,
+			'sort' => 1,
+			'fields' => [
+				['key' => 'filepath', 'label' => '本地存储路径', 'placeholder' => '默认存储在网站file目录', 'help' => '不填写则默认存储在网站file目录下，如需填写，只能填写以服务器根目录/开始的绝对路径。'],
+			],
+		];
+	}
+
+	//保存配置时校验
+	public static function check($config) {
+		if(!empty($config['filepath'])){
+			if(!is_dir($config['filepath'])) return '本地存储路径不存在';
+			if(!is_writable($config['filepath'])) return '本地存储路径没有写入权限';
+		}
+		return true;
+	}
+
+	public function __construct($config) {
+		$filepath = is_array($config) ? ($config['filepath'] ?? '') : $config;
 		if($filepath && is_dir($filepath)){
 			$this->path = rtrim($filepath, '/\\').'/';
 		}else{
@@ -29,7 +52,7 @@ class Local implements IStorage {
 	}
 
 	public function get($name) {
-		return file_get_contents($this->path.$name);
+		return @file_get_contents($this->path.$name);
 	}
 
 	public function downfile($name, $range = false) {

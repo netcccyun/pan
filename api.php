@@ -16,7 +16,8 @@ function showresult($arr, $format='json'){
 	}else{
 		@header('Content-Type: text/html; charset=UTF-8');
 		if($arr['code']==0){
-			$backurl = isset($_POST['backurl'])?$_POST['backurl']:$_SERVER['HTTP_REFERER'];
+			$backurl = isset($_POST['backurl']) && is_string($_POST['backurl'])?$_POST['backurl']:(string)$_SERVER['HTTP_REFERER'];
+			if(!preg_match('/^https?:\/\//i', $backurl)) sysmsg('返回地址不正确');
 echo '<html>
 <head>
 <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
@@ -49,13 +50,21 @@ if(!empty($conf['api_referer'])){
 
 if(!isset($_FILES['file']))showresult(['code'=>-1, 'msg'=>'请选择文件']);
 if($_FILES['file']['error']!=UPLOAD_ERR_OK || !is_uploaded_file($_FILES['file']['tmp_name']))showresult(['code'=>-1, 'msg'=>'文件上传失败，错误码：'.intval($_FILES['file']['error'])]);
-$name=trim(htmlspecialchars($_FILES['file']['name']));
+$name=trim(htmlspecialchars(clean_file_name($_FILES['file']['name'])));
 $size=intval($_FILES['file']['size']);
 $hide = $_POST['show']==1?0:1;
 $ispwd = intval($_POST['ispwd']);
-$pwd = $ispwd==1?trim(htmlspecialchars($_POST['pwd'])):null;
+$pwd = $ispwd==1 && is_string($_POST['pwd'])?trim(htmlspecialchars($_POST['pwd'])):null;
 $name = str_replace(['/','\\',':','*','"','<','>','|','?'],'',$name);
 if(empty($name))showresult(['code'=>-1, 'msg'=>'文件名不能为空']);
+if(mb_strlen($name, 'UTF-8') > 200)showresult(['code'=>-1, 'msg'=>'文件名太长']);
+//和网页上传一样的大小和数量限制
+$limit_size = intval($conf['upload_size']);
+if($limit_size > 0 && $size > $limit_size * 1024 * 1024)showresult(['code'=>-1, 'msg'=>'上传文件大小限制'.$limit_size.'MB']);
+if($conf['upload_limit']>0){
+	$ipcount=$DB->getColumn("SELECT count(*) from pre_file WHERE ip=:ip AND addtime>=:day", [':ip'=>$clientip, ':day'=>date("Y-m-d 00:00:00")]);
+	if($ipcount>=$conf['upload_limit'])showresult(['code'=>-1, 'msg'=>'你今天上传文件的数量已超过限制']);
+}
 if($ispwd==1 && !empty($pwd)){
 	if (!preg_match('/^[a-zA-Z0-9]+$/', $pwd)) {
 		showresult(['code'=>-1, 'msg'=>'文件密码只能为字母和数字']);
@@ -86,9 +95,14 @@ if($row){
 	if(is_view($row['type']))$result['viewurl'] = $siteurl.'view.php/'.$hash.'.'.$row['type'];
 	showresult($result);
 }
+//开启“允许选择存储类型”时，可通过 storage_id 参数指定存储
+$storage = \lib\StorHelper::getUploadStorage(isset($_POST['storage_id']) ? intval($_POST['storage_id']) : 0);
+if(!$storage)showresult(['code'=>-1, 'msg'=>\lib\StorHelper::errmsg(), 'error'=>'stor']);
+$stor = \lib\StorHelper::getModelByStorage($storage);
+if(!$stor)showresult(['code'=>-1, 'msg'=>\lib\StorHelper::errmsg(), 'error'=>'stor']);
 $result = $stor->upload($hash, $_FILES['file']['tmp_name'], minetype($ext));
 if(!$result)showresult(['code'=>-1, 'msg'=>'文件上传失败', 'error'=>'stor']);
-$sds = $DB->exec("INSERT INTO `pre_file` (`name`,`type`,`size`,`hash`,`addtime`,`ip`,`hide`,`pwd`) values (:name,:type,:size,:hash,NOW(),:ip,:hide,:pwd)", [':name'=>$name, ':type'=>$ext, ':size'=>$size, ':hash'=>$hash, ':ip'=>$clientip, ':hide'=>$hide, ':pwd'=>$pwd]);
+$sds = $DB->exec("INSERT INTO `pre_file` (`name`,`type`,`size`,`hash`,`addtime`,`ip`,`hide`,`pwd`,`storage_id`) values (:name,:type,:size,:hash,NOW(),:ip,:hide,:pwd,:storage_id)", [':name'=>$name, ':type'=>$ext, ':size'=>$size, ':hash'=>$hash, ':ip'=>$clientip, ':hide'=>$hide, ':pwd'=>$pwd, ':storage_id'=>$storage['id']]);
 if(!$sds)showresult(['code'=>-1, 'msg'=>'上传失败'.$DB->error(), 'error'=>'database']);
 $id = $DB->lastInsertId();
 

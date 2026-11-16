@@ -9,7 +9,7 @@ ADD COLUMN `uid` int(11) unsigned NOT NULL DEFAULT '0';
 ALTER TABLE `pre_file`
 ADD INDEX `uid` (`uid`);
 
-CREATE TABLE IF EXISTS `pre_user` (
+CREATE TABLE IF NOT EXISTS `pre_user` (
   `uid` int(11) NOT NULL AUTO_INCREMENT,
   `type` varchar(20) NOT NULL,
   `openid` varchar(150) NOT NULL,

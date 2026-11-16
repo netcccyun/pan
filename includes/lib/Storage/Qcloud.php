@@ -9,6 +9,23 @@ class Qcloud implements IStorage {
 	private $errmsg;
 	private $filepath = 'file/';
 	
+	public static function info() {
+		return [
+			'name' => '腾讯云COS',
+			'icon' => 'assets/img/storage/tencent.png',
+			'url' => 'https://cloud.tencent.com/act/cps/redirect?redirect=10042&cps_key=11eaac2f518cd09a6288f4b1912228b8',
+			'cloud' => true,
+			'range' => true,
+			'sort' => 11,
+			'fields' => array_merge([
+				['key' => 'secretId', 'label' => 'SecretId', 'required' => true],
+				['key' => 'secretKey', 'label' => 'SecretKey', 'required' => true],
+				['key' => 'region', 'label' => 'COS存储桶地域', 'placeholder' => '填写英文名称，例如：ap-shanghai', 'required' => true],
+				['key' => 'bucket', 'label' => 'COS存储桶名称', 'placeholder' => '格式：BucketName-APPID', 'required' => true],
+			], \lib\StorHelper::cloudFields()),
+		];
+	}
+
 	public function __construct($config) {
 		$this->bucket = $config['bucket'];
 		$this->config = $config;
@@ -143,7 +160,7 @@ class Qcloud implements IStorage {
 	}
 
 	public function getDownUrl($name, $filename, $content_type = null){
-		global $conf;
+		$conf = $this->config;
 		$filename = '"'.$filename.'"; filename*=utf-8\'\''.rawurlencode($filename);
 		if(!$content_type){
 			$options = [

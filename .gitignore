@@ -1,0 +1,4 @@
+/.vscode
+/vendor
+/composer.lock
+/install/install.lock

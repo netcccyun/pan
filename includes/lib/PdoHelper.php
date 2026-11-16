@@ -20,6 +20,10 @@ class PdoHelper
 		try {
 			$this->db = new \PDO("mysql:host={$dbconfig['host']};dbname={$dbconfig['dbname']};port={$dbconfig['port']}", $dbconfig['user'], $dbconfig['pwd']);
 		} catch (\Exception $e) {
+			if (defined('IN_API')) {
+				header('Content-Type: application/json; charset=UTF-8');
+				exit(json_encode(['code'=>-1, 'msg'=>'链接数据库失败:' . $e->getMessage()], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
+			}
 			exit('链接数据库失败:' . $e->getMessage());
 		}
 		$this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_SILENT);

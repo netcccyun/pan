@@ -142,7 +142,6 @@ if($step==3){
                 <div class="panel-heading text-center">MYSQL数据库信息配置</div>
                 <div class="panel-body">
                     <div class="list-group text-success">
-                        <?php if(defined('SAE_ACCESSKEY')){?>检测到当前是SAE，请先手动改好根目录config.php里面的数据库配置信息。然后直接<a href="?step=3&jump=1">点击此处</a>进行安装！<?php }else{?>
                         <form class="form-horizontal" action="?step=3" method="post">
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">数据库地址</label>
@@ -185,7 +184,6 @@ if($step==3){
                                 </div>
                             </div>
                         </form>
-                        <?php }?>
                     </div>
                 </div>
                 <?php }elseif($step==3){ ?>
@@ -254,19 +252,33 @@ if(!empty($errorMsg)){
                     }else{
                         $check[1]='<span class="pull-right label label-danger">不支持</span>';
                     }
-                    if(version_compare(PHP_VERSION,'7.1.0','<')){
+                    if(version_compare(PHP_VERSION,'8.1.0','<')){
                         $check[3]='<span class="pull-right label label-danger">不支持</span>';
                         $install=false;
                     }else{
                         $check[3]='<span class="pull-right label label-success">支持</span>';
                     }
+                    if(extension_loaded('gd')){
+                        $check[5]='<span class="pull-right label label-success">支持</span>';
+                    }else{
+                        $check[5]='<span class="pull-right label label-danger">不支持</span>';
+                        $install=false;
+                    }
+                    if(is_file('../vendor/autoload.php')){
+                        $check[4]='<span class="pull-right label label-success">已安装</span>';
+                    }else{
+                        $check[4]='<span class="pull-right label label-danger">未安装</span>';
+                        $install=false;
+                    }
 
                     ?>
                     <ul class="list-group">
-                        <li class="list-group-item">PHP版本>=7.1 <?php echo $check[3];?></li>
+                        <li class="list-group-item">PHP版本>=8.1 <?php echo $check[3];?></li>
                         <li class="list-group-item">PDO_MYSQL组件 <?php echo $check[0];?></li>
                         <li class="list-group-item">CURL组件 <?php echo $check[2];?></li>
+                        <li class="list-group-item">GD组件<?php echo $check[5];?></li>
                         <li class="list-group-item">主目录写入权限 <?php echo $check[1];?></li>
+                        <li class="list-group-item">Composer依赖库 <?php echo $check[4];?><?php if(!is_file('../vendor/autoload.php')){?><br/><small class="text-danger">请在网站根目录执行 <code>composer install --no-dev</code> 安装依赖</small><?php }?></li>
                         <li class="list-group-item">成功安装后安装文件就会锁定，如需重新安装，请手动删除install目录下install.lock配置文件！</li>
                         <?php
                         if($install) echo'<li class="list-group-item"><a href="?step=2" class="btn btn-block btn-default">检测通过，下一步</a></li>';

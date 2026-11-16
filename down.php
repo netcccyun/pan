@@ -31,14 +31,14 @@ if($row['block']>=1){
     exit('File is blocked!');
 }
 
-if($row['pwd']!=null && $row['pwd']!=$pwd){ ?>
+if((string)$row['pwd']!=='' && (string)$row['pwd']!==(string)$pwd){ ?>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <title>请输入密码下载文件</title>
     <script type="text/javascript">
     var pwd=prompt("请输入密码","")
     if (pwd!=null && pwd!="")
     {
-        window.location.href='<?php echo $siteurl.'down.php/'.$row['hash']?>&'+pwd
+        window.location.href=<?php echo json_encode($siteurl.'down.php/'.$row['hash'].'.'.($row['type'] ? $row['type'] : 'file'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)?>+'&'+encodeURIComponent(pwd)
     }
     </script>
     请刷新页面，或[ <a href="javascript:history.back();">返回上一页</a> ]
@@ -46,11 +46,12 @@ if($row['pwd']!=null && $row['pwd']!=$pwd){ ?>
     exit;
 }
 
-if($stor->exists($row['hash']))
+$stor = $row ? \lib\StorHelper::getFileStor($row) : false;
+if ($stor && $stor->exists($row['hash']))
 {
     $DB->exec("UPDATE `pre_file` SET `lasttime`=NOW(),`count`=`count`+1 WHERE `id`='{$row['id']}'");
 
-    file_output($row['hash'], $row['type'], $row['size'], $row['name']);
+    file_output($row);
 }
 else{
     header('HTTP/1.1 404 Not Found');

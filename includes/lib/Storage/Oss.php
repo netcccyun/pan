@@ -9,6 +9,23 @@ class Oss implements IStorage {
 	private $errmsg;
 	private $filepath = 'file/';
 
+	public static function info() {
+		return [
+			'name' => '阿里云OSS',
+			'icon' => 'assets/img/storage/aliyun.png',
+			'url' => 'https://www.aliyun.com/product/oss?userCode=1cyrqim7',
+			'cloud' => true,
+			'range' => true,
+			'sort' => 10,
+			'fields' => array_merge([
+				['key' => 'accessKeyId', 'label' => 'AccessKey Id', 'required' => true],
+				['key' => 'accessKeySecret', 'label' => 'AccessKey Secret', 'required' => true],
+				['key' => 'endpoint', 'label' => 'OSS EndPoint', 'placeholder' => '例如：oss-cn-hangzhou.aliyuncs.com', 'format' => 'domain', 'required' => true],
+				['key' => 'bucket', 'label' => 'OSS Bucket', 'required' => true],
+			], \lib\StorHelper::cloudFields()),
+		];
+	}
+
 	public function __construct($config) {
 		$this->bucket = $config['bucket'];
 		$this->config = $config;
@@ -126,7 +143,7 @@ class Oss implements IStorage {
 	}
 	
 	public function getDownUrl($name, $filename, $content_type = null){
-		global $conf;
+		$conf = $this->config;
 		$timeout = 315360000;
 		$filename = '"'.$filename.'"; filename*=utf-8\'\''.rawurlencode($filename);
 		if(!$content_type){

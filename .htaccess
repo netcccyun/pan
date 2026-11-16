@@ -1,0 +1,4 @@
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteRule ^(vendor/|file/|includes/) - [F,L]
+</IfModule>

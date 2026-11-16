@@ -9,6 +9,23 @@ class Obs implements IStorage {
 	private $errmsg;
 	private $filepath = 'file/';
 
+	public static function info() {
+		return [
+			'name' => '华为云OBS',
+			'icon' => 'assets/img/storage/huawei.png',
+			'url' => 'https://www.huaweicloud.com/product/obs.html?fromacct=b70162c8-fbde-42ca-9f3d-5d99dc1951ba&utm_source=bmV0MjAy=&utm_medium=cps&utm_campaign=201905',
+			'cloud' => true,
+			'range' => true,
+			'sort' => 12,
+			'fields' => array_merge([
+				['key' => 'accessKey', 'label' => 'AccessKeyId', 'required' => true],
+				['key' => 'secretKey', 'label' => 'SecretAccessKey', 'required' => true],
+				['key' => 'endpoint', 'label' => 'OBS EndPoint', 'placeholder' => '例如：obs.cn-north-4.myhuaweicloud.com', 'format' => 'domain', 'required' => true],
+				['key' => 'bucket', 'label' => 'OBS桶名称', 'required' => true],
+			], \lib\StorHelper::cloudFields()),
+		];
+	}
+
 	public function __construct($config) {
 		$this->bucket = $config['bucket'];
 		$this->config = $config;
@@ -155,7 +172,7 @@ class Obs implements IStorage {
 	}
 	
 	public function getDownUrl($name, $filename, $content_type = null){
-		global $conf;
+		$conf = $this->config;
 		$expires = 315360000;
 		$filename = '"'.$filename.'"; filename*=utf-8\'\''.rawurlencode($filename);
 		if(!$content_type){

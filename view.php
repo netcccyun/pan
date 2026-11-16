@@ -22,19 +22,23 @@ if(strpos($url,".")){
 }
 
 $row = $DB->getRow("SELECT * FROM `pre_file` WHERE `hash`=:hash limit 1", [':hash'=>$hash]);
-if(!$row) exit;
+if(!$row){
+    header('HTTP/1.1 404 Not Found');
+    exit;
+}
 if($row['block']>=1){
     header("Content-type: ".minetype('gif'));
     readfile(ROOT.'assets/img/block.gif');
     exit;
 }
 
-if ($stor->exists($row['hash'])) {
+$stor = $row ? \lib\StorHelper::getFileStor($row) : false;
+if ($stor && $stor->exists($row['hash'])) {
     if(is_view($row['type']))
     {
         $DB->exec("UPDATE `pre_file` SET `lasttime`=NOW(),`count`=`count`+1 WHERE `id`='{$row['id']}'");
 
-        file_output($row['hash'], $row['type'], $row['size'], $row['name'], true, isset($_GET['greencheck']));
+        file_output($row, true, isset($_GET['greencheck']));
     }
 }else{
     header('HTTP/1.1 404 Not Found');

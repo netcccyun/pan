@@ -8,6 +8,24 @@ class Upyun implements IStorage {
 	private $errmsg;
 	private $filepath = 'file/';
 
+	public static function info() {
+		return [
+			'name' => '又拍云',
+			'icon' => 'assets/img/storage/upyun.png',
+			'url' => 'https://console.upyun.com/register/?invite=jUSQy3jyE',
+			'cloud' => true,
+			'range' => false,
+			'sort' => 13,
+			'fields' => array_merge([
+				['key' => 'serviceName', 'label' => '云存储服务名称', 'required' => true],
+				['key' => 'operatorName', 'label' => '操作员名称', 'required' => true],
+				['key' => 'operatorPwd', 'label' => '操作员密码', 'required' => true],
+			], \lib\StorHelper::cloudFields([
+				'downfile_domain' => ['placeholder' => '又拍云必须填写', 'help' => '填写又拍云服务绑定的域名，也可使用CDN域名', 'required' => true],
+			])),
+		];
+	}
+
 	public function __construct($config) {
 		$this->config = $config;
 		$serviceConfig = new \Upyun\Config($config['serviceName'], $config['operatorName'], $config['operatorPwd']);
@@ -107,12 +125,12 @@ class Upyun implements IStorage {
 	}
 
 	public function getDownUrl($name, $filename, $content_type = null){
-		global $conf;
+		$conf = $this->config;
 		if(empty($conf['downfile_domain'])){
 			$this->errmsg = '文件下载域名不能为空';
 			return false;
 		}
-		$url = ($conf['downfile_protocol']==1?'https://':'http://').$conf['downfile_domain'].'/'.$this->filepath.$name;
+		$url = (($conf['downfile_protocol'] ?? '0')==1?'https://':'http://').$conf['downfile_domain'].'/'.$this->filepath.$name;
 		return $url;
 	}
 }

@@ -1,146 +1,34 @@
-<?php
-if (version_compare(PHP_VERSION, '8.1.0', '<')) {
-    die('require PHP >= 8.1 !');
-}
-include("./includes/common.php");
-
-$searchable = $conf['filesearch']==1;
-if(isset($_GET['m']) && $_GET['m']=='mine'){
-    $searchable = true;
-    $title = '我的文件 - ' . $conf['title'];
-    $htext = '我上传的文件';
-    if($islogin2){
-        $sql = " uid='{$uid}'";
-    }else{
-        if($conf['userlogin']==1){
-            $htext .= '<span class="text-muted" style="font-size:16px">（根据浏览器缓存记录，<a href="login.php">登录</a>后可永久保留记录）</span>';
-        }else{
-            $htext .= '<span class="text-muted" style="font-size:16px">（根据浏览器缓存记录）</span>';
-        }
-        if(isset($_SESSION['fileids']) && count($_SESSION['fileids'])>0){
-            $ids = array_reverse($_SESSION['fileids']);
-            if(count($ids) > 60){
-                $ids = array_splice($ids, 0, 60);
-            }
-            $ids = implode(',',$ids);
-            $sql = " id IN ($ids)";
-        }else{
-            $sql = " 1=2";
-        }
-    }
-    $link = '&m=mine';
-}else{
-    $title = $conf['title'];
-    $htext = '文件列表';
-    $sql = " hide=0";
-    $link = '';
-}
-$kw = isset($_GET['kw']) && is_string($_GET['kw'])?trim(strip_tags($_GET['kw'])):null;
-if($searchable && $kw){
-    $sql.=" AND name LIKE '%".daddslashes($kw)."%'";
-    $link .= '&kw='.urlencode($kw);
-}
-
-include SYSTEM_ROOT.'header.php';
-?>
-<div class="container">
-    <div class="well bs-component">
-        <h2><?php echo $htext?>
-        <?php if($searchable){?><span class="searchbox">
-            <form class="form-inline" action="./" method="GET">
-                <?php if(isset($_GET['m'])){?><input name="m" type="hidden" value="<?php echo htmlspecialchars($_GET['m'])?>"><?php }?>
-				<input name="kw" class="form-control" type="search" placeholder="请输入搜索关键字" value="<?php echo htmlspecialchars((string)$kw)?>" required="">
-				<button class="btn btn-default btn-raised btn-sm" type="submit"><i class="fa fa-search" aria-hidden="true"></i> 搜索</button>
-			</form>
-        </span><?php }?></h2>
-        <div class="table-responsive">
-       <table class="table table-striped table-hover filelist">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>操作</th>
-                    <th>文件名</th>
-                    <th>文件大小</th>
-                    <th>文件格式</th>
-                    <th>上传时间</th>
-                    <th>上传者IP</th>
-                </tr>
-            </thead>
-            <tbody>
-<?php
-$numrows=$DB->getColumn("SELECT count(*) from pre_file WHERE{$sql}");
-$pagesize=15;
-$pages=ceil($numrows/$pagesize);
-$page=isset($_GET['page'])?intval($_GET['page']):1;
-if($page<1)$page=1;
-$offset=$pagesize*($page - 1);
-
-$rs=$DB->query("SELECT * FROM pre_file WHERE{$sql} ORDER BY id DESC LIMIT $offset,$pagesize");
-$i=1;
-while($rs && $res = $rs->fetch())
-{
-	$fileurl = './down.php/'.$res['hash'].'.'.($res['type']?$res['type']:'file');
-	$viewurl = './file.php?hash='.$res['hash'];
-echo '<tr><td><b>'.$i++.'</b></td><td><a href="'.$fileurl.'">下载</a>｜<a href="'.$viewurl.'">查看</a></td><td><i class="fa '.type_to_icon($res['type']).' fa-fw"></i>'.$res['name'].'</td><td>'.size_format($res['size']).'</td><td><font color="blue">'.($res['type']?$res['type']:'未知').'</font></td><td>'.$res['addtime'].'</td><td>'.preg_replace('/\d+$/','*',$res['ip']).'</b></td></tr>';
-}
-if($numrows == 0) echo '<tr><td colspan="7" align="center">还没上传过任何文件</td></tr>';
-?>
-            </tbody>
-        </table>
-        </div>
-        <div class="row">
-        <div class="col-md-6"><br>共有 <?php echo $numrows?> 个文件&nbsp;&nbsp;当前第 <?php echo $page?> 页，共 <?php echo $pages?> 页</div>
-        <div class="col-md-6"><nav>
-  <ul class="pagination pagination-sm" style="float:right;">
-<?php
-$first=1;
-$prev=$page-1;
-$next=$page+1;
-$last=$pages;
-if ($page>1)
-{
-echo '<li><a href="index.php?page='.$first.$link.'">首页</a></li>';
-echo '<li><a href="index.php?page='.$prev.$link.'">&laquo;</a></li>';
-} else {
-echo '<li class="disabled"><a>首页</a></li>';
-echo '<li class="disabled"><a>&laquo;</a></li>';
-}
-$start=$page-10>1?$page-10:1;
-$end=$page+10<$pages?$page+10:$pages;
-for ($i=$start;$i<$page;$i++)
-echo '<li><a href="index.php?page='.$i.$link.'">'.$i .'</a></li>';
-echo '<li class="disabled"><a>'.$page.'</a></li>';
-for ($i=$page+1;$i<=$end;$i++)
-echo '<li><a href="index.php?page='.$i.$link.'">'.$i .'</a></li>';
-echo '';
-if ($page<$pages)
-{
-echo '<li><a href="index.php?page='.$next.$link.'">&raquo;</a></li>';
-echo '<li><a href="index.php?page='.$last.$link.'">尾页</a></li>';
-} else {
-echo '<li class="disabled"><a>&raquo;</a></li>';
-echo '<li class="disabled"><a>尾页</a></li>';
-}
-?>
-  </ul>
-</nav></div>
+<!DOCTYPE html><html  lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><script type="importmap">{"imports":{"#entry":"./assets/_nuxt/JkS5vHUc.js"}}</script><link rel="stylesheet" href="./assets/_nuxt/entry.DLwR_489.css" crossorigin><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/JkS5vHUc.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/D3fyrLSG.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/Cqv_khrX.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/WYvR0lYS.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/BW3xJdEx.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/CAHAFm6s.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/B0PfuPgH.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/4Z5jq8Mq.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/DclECHGd.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/BiW4RH3Y.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/XKyaHtl9.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/DygpyPfS.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/Bm52xD9_.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/NLoi6fiO.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/BcpFarFK.js"><link rel="modulepreload" as="script" crossorigin href="./assets/_nuxt/BMgT_Rla.js"><script type="module" src="./assets/_nuxt/JkS5vHUc.js" crossorigin></script><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/DVsxizxU.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/Bp0Bzwjx.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/DPB_fTkg.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/BDNMzG2s.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/C8sfSl_J.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/CWdbOCQN.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/D5PJW7gJ.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/DyD_DYBb.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/DHihWhf5.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/hoMHt2gu.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/BerpwRJ-.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/D5rNGBNi.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/3QzVu1y9.js"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/uk3GhUNP.js"><link rel="prefetch" as="style" crossorigin href="./assets/_nuxt/error-404.DpvuN5dZ.css"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/BvU0qufa.js"><link rel="prefetch" as="style" crossorigin href="./assets/_nuxt/error-500.DaAd9Mzk.css"><link rel="prefetch" as="script" crossorigin href="./assets/_nuxt/DMtsTsge.js"><meta name="renderer" content="webkit"><meta name="format-detection" content="telephone=no"><link rel="icon" href="favicon.ico"><script>"use strict";(()=>{const o=window,e=document.documentElement,c=["dark","light"],s=getStorageValue("localStorage","nuxt-color-mode")||"system";let r=s==="system"?f():s;const l=e.getAttribute("data-color-mode-forced");l&&(r=l),i(r),o["__NUXT_COLOR_MODE__"]={preference:s,value:r,getColorScheme:f,addColorScheme:i,removeColorScheme:d};function i(t){const a=""+t+"",n="";e.classList?e.classList.add(a):e.className+=" "+a,n&&e.setAttribute("data-"+n,t)}function d(t){const a=""+t+"",n="";e.classList?e.classList.remove(a):e.className=e.className.replace(new RegExp(a,"g"),""),n&&e.removeAttribute("data-"+n)}function u(t){return o.matchMedia("(prefers-color-scheme"+t+")")}function f(){if(o.matchMedia&&u("").media!=="not all"){for(const t of c)if(u(":"+t).matches)return t}return"light"}})();function getStorageValue(o,e){switch(o){case"localStorage":try{return window.localStorage.getItem(e)}catch{return null}case"sessionStorage":try{return window.sessionStorage.getItem(e)}catch{return null}case"cookie":try{return getCookie(e)}catch{return null}default:return null}}function getCookie(o){const c=("; "+window.document.cookie).split("; "+o+"=");if(c.length===2){const s=c.pop();return s?s.split(";").shift():null}}</script></head><body><div id="__nuxt" class="isolate"></div><div id="__nuxt-loader"><div class="spa-loader">
+  <div class="spa-loader-ring"></div>
+  <div class="spa-loader-text">加载中…</div>
 </div>
-    </div>
-<?php include SYSTEM_ROOT.'footer.php';?>
-<?php if(!empty($conf['gonggao'])){?>
-<link href="<?php echo $cdnpublic?>snackbarjs/1.1.0/snackbar.min.css" rel="stylesheet">
-<script src="<?php echo $cdnpublic?>snackbarjs/1.1.0/snackbar.min.js"></script>
-<script src="<?php echo $cdnpublic?>jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
-<script>
-$(function() {
-    if(!$.cookie('gonggao')){
-        $.snackbar({content: "<?php echo $conf['gonggao']?>", timeout: 10000});
-        var cookietime = new Date(); 
-        cookietime.setTime(cookietime.getTime() + (60*60*1000));
-        $.cookie('gonggao', false, { expires: cookietime });
-    }
-});
-</script>
-<?php }?>
-</body>
-</html>
+<style>
+  html, body { margin: 0; background: #fff; }
+  html.dark, html.dark body { background: #0f172a; }
+  .spa-loader {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .spa-loader-ring {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(99, 102, 241, 0.2);
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spa-loader-spin 0.8s linear infinite;
+  }
+  .spa-loader-text {
+    font-size: 14px;
+    color: #64748b;
+  }
+  html.dark .spa-loader-text { color: #94a3b8; }
+  @keyframes spa-loader-spin {
+    to { transform: rotate(360deg); }
+  }
+</style></div><div id="teleports"></div><script>window.__NUXT__={};window.__NUXT__.config={public:{colorMode:{cookieAttrs:""}},app:{baseURL:"./",buildId:"69285f27-8861-4eaa-b989-7f42365ce127",buildAssetsDir:"/assets/_nuxt/",cdnURL:""}}</script><script type="application/json" data-nuxt-data="nuxt-app" data-ssr="false" id="__NUXT_DATA__">[{"prerenderedAt":1,"serverRendered":2},1794747077646,false]</script></body></html>

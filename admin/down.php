@@ -2,7 +2,7 @@
 $nosession=true;
 $nosecu=true;
 include("../includes/common.php");
-if($islogin==1){}else exit("<script language='javascript'>window.location.href='./login.php';</script>");
+if($islogin==1){}else exit("<script language='javascript'>window.location.href='".rtrim(str_replace('\\','/',dirname($_SERVER['SCRIPT_NAME'])),'/')."/#/login';</script>");
 
 $url = '';
 $pwd = null;
@@ -25,11 +25,12 @@ if(strpos($url,".")){
 $row = $DB->getRow("SELECT * FROM `pre_file` WHERE `hash`=:hash limit 1", [':hash'=>$hash]);
 if(!$row)exit('404 Not Found');
 
-if($stor->exists($row['hash']))
+$stor = $row ? \lib\StorHelper::getFileStor($row) : false;
+if ($stor && $stor->exists($row['hash']))
 {
     $DB->exec("UPDATE `pre_file` SET `lasttime`=NOW(),`count`=`count`+1 WHERE `id`='{$row['id']}'");
     
-    file_output($row['hash'], $row['type'], $row['size'], $row['name'], false, true);
+    file_output($row, false, true);
 }
 else{
     exit('File Not Found');

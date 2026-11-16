@@ -421,7 +421,7 @@ function is_view($type){
 	$type_image = explode('|',$conf['type_image']);
 	$type_audio = explode('|',$conf['type_audio']);
 	$type_video = explode('|',$conf['type_video']);
-	if (in_array($type, $type_image) || in_array($type, $type_audio) || in_array($type, $type_video)) {
+	if (in_array($type, $type_image) || in_array($type, $type_audio) || in_array($type, $type_video) || strtolower((string)$type) === 'pdf') {
 		return true;
 	}
 	return false;
@@ -441,8 +441,44 @@ function get_view_type($type){
 		return 'video';
 	}elseif (in_array($type, $type_office)) {
 		return 'office';
+	}elseif (in_array($type, get_text_types())) {
+		return 'text';
 	}
 	return false;
+}
+
+//支持在线预览的文本、代码文件后缀
+function get_text_types(){
+	return ['txt','text','log','md','markdown','csv','tsv','json','xml','yaml','yml','toml','ini','conf','cfg','env','properties',
+		'html','htm','css','scss','sass','less','js','mjs','cjs','jsx','ts','tsx','vue','php','py','java','kt','go','rs','rb','pl','lua','swift','dart','scala','r',
+		'c','h','cpp','cc','cxx','hpp','cs','m','mm','sql','sh','bash','bat','cmd','ps1','vbs','reg','gradle','diff','patch','tpl','jsp','asp','aspx'];
+}
+
+//文本文件在线预览的大小上限
+define('TEXT_VIEW_MAXSIZE', 1048576);
+
+//文本文件是否可以在线预览
+function is_text_view($row){
+	return in_array((string)$row['type'], get_text_types()) && intval($row['size']) <= TEXT_VIEW_MAXSIZE && intval($row['block']) == 0;
+}
+
+/**
+ * 读取文本文件内容（在线预览），非UTF-8编码的按GBK转换
+ * @return string|false
+ */
+function get_text_content($row){
+	$stor = \lib\StorHelper::getFileStor($row);
+	if(!$stor) return false;
+	$content = $stor->get($row['hash']);
+	if($content === false || $content === null) return false;
+	$content = (string)$content;
+	if(strlen($content) > TEXT_VIEW_MAXSIZE) $content = substr($content, 0, TEXT_VIEW_MAXSIZE);
+	if(substr($content, 0, 3) === "\xEF\xBB\xBF") $content = substr($content, 3);
+	if(!mb_check_encoding($content, 'UTF-8')){
+		$converted = @mb_convert_encoding($content, 'UTF-8', 'GB18030');
+		if($converted !== false) $content = $converted;
+	}
+	return $content;
 }
 
 
@@ -500,7 +536,7 @@ try {
 		writeLog("detect not success. code:" . $response->code . ' ' . $response->msg);
 	}
 } catch (Exception $e) {
-	print_r($e);
+	writeLog('aliyun green check error: '.$e->getMessage());
 }
 return false;
 }
@@ -519,6 +555,12 @@ function checkImage_qcloud($fileurl){
 }
 function writeLog($text) {
 	file_put_contents ( SYSTEM_ROOT."log.txt", date ( "Y-m-d H:i:s" ) . "  " . $text . "\r\n", FILE_APPEND );
+}
+
+//清理文件名中的控制字符（换行等会导致下载响应头无效）
+function clean_file_name($name){
+	$name = preg_replace('/[\x00-\x1F\x7F]/u', '', (string)$name);
+	return $name === null ? '' : trim($name);
 }
 
 function get_file_ext($name){
@@ -561,9 +603,9 @@ function file_part_merge($hash, $chunks){
 function get_file_range($size){
 	if(isset($_SERVER['HTTP_RANGE']) && !empty($_SERVER['HTTP_RANGE']) && preg_match('/^bytes=(\d+)-(\d*)$/i', $_SERVER['HTTP_RANGE'], $match)){
 		$start = intval($match[1]);
-		$end = intval($match[2]);
+		//bytes=100- 表示到文件末尾；bytes=0-0 是合法的单字节请求，不能当成到末尾
+		$end = $match[2] === '' ? $size - 1 : intval($match[2]);
 		if($start < 0) $start = 0;
-		if($end == 0) $end = $size - 1;
 		if($end >= $size) $end = $size - 1;
 		if($end < $start || $start >= $size) return false;
 		return [$start, $end];
@@ -571,11 +613,25 @@ function get_file_range($size){
 	return false;
 }
 
-function file_output($hash, $type, $size, $name, $is_view = false, $is_admin = false){
-	global $conf, $stor;
+/**
+ * 输出文件内容（按文件关联的存储读取）
+ * @param array $row 文件记录
+ */
+function file_output($row, $is_view = false, $is_admin = false){
+	$hash = $row['hash'];
+	$type = $row['type'];
+	//数据库中的文件名经过HTML转义，下载时需要还原，否则 & 等字符会变成 &amp;
+	$name = clean_file_name(htmlspecialchars_decode((string)$row['name']));
+	if($name === '') $name = $hash.($type ? '.'.$type : '');
+	$storage = \lib\StorHelper::getFileStorage($row);
+	$stor = $storage ? \lib\StorHelper::getModelByStorage($storage) : false;
+	if(!$stor){
+		header('HTTP/1.1 500 Internal Server Error');
+		exit('Error:'.\lib\StorHelper::errmsg());
+	}
 
 	@set_time_limit(0);
-	$size = intval($size);
+	$size = intval($row['size']);
 	if($is_admin){
 		header("Pragma: no-cache");
     	header("Cache-Control: no-store, no-cache, must-revalidate");
@@ -587,11 +643,18 @@ function file_output($hash, $type, $size, $name, $is_view = false, $is_admin = f
 		header("Cache-Control: max-age=$seconds_to_cache");
 	}
 
-	$filename = '"'.$name.'"; filename*=utf-8\'\''.rawurlencode($name);
+	//防止浏览器把图片等文件内容嗅探成网页执行
+	header('X-Content-Type-Options: nosniff');
+	$filename = '"'.str_replace(['"', '\\'], '_', $name).'"; filename*=utf-8\'\''.rawurlencode($name);
 
-	if(\lib\StorHelper::is_cloud() && $conf['downfile_type'] == 1){
+	if(\lib\StorHelper::is_direct_down($storage)){
 		$redirect = $stor->getDownUrl($hash, $name, $is_view ? minetype($type) : null);
 		if($redirect){
+			//跳转地址带有时效签名（S3最长7天），跳转本身只缓存3天
+			if(!$is_admin){
+				header("Expires: ".gmdate("D, d M Y H:i:s", time() + 86400 *3)." GMT");
+				header("Cache-Control: max-age=".(86400 * 3));
+			}
 			header("Location: ".$redirect);
 		}else{
 			ob_clean();
@@ -608,7 +671,7 @@ function file_output($hash, $type, $size, $name, $is_view = false, $is_admin = f
 		}
 
 		$range = false;
-		if(\lib\StorHelper::is_range()){
+		if(\lib\StorHelper::is_range($storage)){
 			header("Accept-Ranges: bytes");
 			$range = get_file_range($size);
 		}
@@ -620,7 +683,7 @@ function file_output($hash, $type, $size, $name, $is_view = false, $is_admin = f
 			$stor->downfile($hash, $range);
 		}else{
 			header("Content-Length: {$size}");
-			$stor->downfile($hash, $conf['storage']=='local'?[0, $size-1]:false);
+			$stor->downfile($hash, $storage['type']=='local'?[0, $size-1]:false);
 		}
 	}
 }

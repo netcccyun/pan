@@ -11,6 +11,25 @@ class Qiniu implements IStorage {
 	private $errmsg;
 	private $filepath = 'file/';
 	
+	public static function info() {
+		return [
+			'name' => '七牛云',
+			'icon' => 'assets/img/storage/qiniu.png',
+			'url' => 'https://s.qiniu.com/j6zy63',
+			'cloud' => true,
+			'range' => true,
+			'sort' => 14,
+			'fields' => array_merge([
+				['key' => 'accessKey', 'label' => 'AccessKey', 'required' => true],
+				['key' => 'secretKey', 'label' => 'SecretKey', 'required' => true],
+				['key' => 'bucket', 'label' => '存储空间名称', 'required' => true],
+				['key' => 'domain', 'label' => '空间绑定域名', 'placeholder' => '例如：file.example.com', 'format' => 'domain', 'required' => true],
+			], \lib\StorHelper::cloudFields([
+				'downfile_domain' => ['placeholder' => '留空则使用空间绑定域名', 'help' => '可填写CDN域名'],
+			])),
+		];
+	}
+
 	public function __construct($config) {
 		$this->bucket = $config['bucket'];
 		$this->config = $config;
@@ -148,10 +167,10 @@ class Qiniu implements IStorage {
 	}
 
 	public function getDownUrl($name, $filename = null, $content_type = null){
-		global $conf;
+		$conf = $this->config;
 		$expires = 315360000;
-		if(!$conf['downfile_type'] || empty($conf['downfile_domain'])) $conf['downfile_domain'] = $this->config['domain'];
-		$url = ($conf['downfile_protocol']==1?'https://':'http://').$conf['downfile_domain'].'/'.$this->filepath.$name;
+		if(empty($conf['downfile_type']) || empty($conf['downfile_domain'])) $conf['downfile_domain'] = $this->config['domain'];
+		$url = (($conf['downfile_protocol'] ?? '0')==1?'https://':'http://').$conf['downfile_domain'].'/'.$this->filepath.$name;
 		if(!empty($filename) && $content_type==null){
 			$url .= '?attname='.rawurlencode($filename);
 		}

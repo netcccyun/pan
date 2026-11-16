@@ -24,35 +24,143 @@ date_default_timezone_set("PRC");
 $date = date("Y-m-d");
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
 $db->exec("set sql_mode = ''");
-$db->exec("set names utf8");
+$db->exec("set names utf8mb4");
 
 $version = 0;
 if($rs = $db->query("SELECT v FROM pre_config WHERE k='version'")){
-	$version = $rs->fetchColumn();
+	$version = intval($rs->fetchColumn());
 }
 
-if($version<1001){
-	$sqls = file_get_contents('update.sql');
-	$sqls=explode(';', $sqls);
-	$sqls[]="REPLACE INTO `pre_config` VALUES ('version', '1001')";
-	if(!$db->query("SELECT v FROM pre_config WHERE k='syskey'")->fetchColumn()){
-		$sqls[]="REPLACE INTO `pre_config` VALUES ('syskey', '".random(32)."')";
-	}
-}else{
+/**
+ * 数据库版本号 => 需要执行的更新SQL文件
+ * 按版本号从小到大依次执行所有高于当前版本的更新
+ */
+$updates = [
+	1001 => 'update.sql',
+	1002 => 'update2.sql',
+];
+ksort($updates);
+
+if($version >= max(array_keys($updates))){
 	exit('你的网站已经升级到最新版本了');
 }
+
+//执行SQL语句
 $success=0;$error=0;$errorMsg=null;
-foreach ($sqls as $value) {
-	$value=trim($value);
-	if(empty($value))continue;
-	if($db->exec($value)===false){
+function run_sqls($sqls){
+	global $db, $success, $error, $errorMsg;
+	foreach ($sqls as $value) {
+		$value=trim($value);
+		if(empty($value))continue;
+		if($db->exec($value)===false){
+			$error++;
+			$dberror=$db->errorInfo();
+			$errorMsg.=$dberror[2]."<br>";
+		}else{
+			$success++;
+		}
+	}
+}
+
+//1002：将原有存储设置迁移到存储管理表，已上传的文件关联到该存储
+function migrate_storage(){
+	global $db, $success, $error, $errorMsg;
+	$count = $db->query("SELECT count(*) FROM pre_storage");
+	if($count === false){
+		$error++;
+		$errorMsg.='存储表 pre_storage 不存在，无法迁移存储设置<br>';
+		return;
+	}
+	if($count->fetchColumn() > 0) return;
+
+	$conf = [];
+	if($rs = $db->query("SELECT k,v FROM pre_config")){
+		while($row = $rs->fetch(PDO::FETCH_ASSOC)){
+			$conf[$row['k']] = $row['v'];
+		}
+	}
+	$get = function($key, $default = '') use ($conf){
+		return isset($conf[$key]) && $conf[$key] !== null ? trim($conf[$key]) : $default;
+	};
+	$cloud = [
+		'uploadfile_type' => $get('uploadfile_type', '0') == '1' ? '1' : '0',
+		'downfile_type' => $get('downfile_type', '0') == '1' ? '1' : '0',
+		'downfile_protocol' => $get('downfile_protocol', '0') == '1' ? '1' : '0',
+		'downfile_domain' => $get('downfile_domain'),
+	];
+
+	$type = $get('storage', 'local') ?: 'local';
+	switch($type){
+		case 'oss':
+			$name = '阿里云OSS';
+			$config = ['accessKeyId' => $get('oss_ak'), 'accessKeySecret' => $get('oss_sk'), 'endpoint' => $get('oss_endpoint'), 'bucket' => $get('oss_bucket')] + $cloud;
+			break;
+		case 'qcloud':
+			$name = '腾讯云COS';
+			$config = ['secretId' => $get('qcloud_id'), 'secretKey' => $get('qcloud_key'), 'region' => $get('qcloud_region'), 'bucket' => $get('qcloud_bucket')] + $cloud;
+			break;
+		case 'obs':
+			$name = '华为云OBS';
+			$config = ['accessKey' => $get('obs_ak'), 'secretKey' => $get('obs_sk'), 'endpoint' => $get('obs_endpoint'), 'bucket' => $get('obs_bucket')] + $cloud;
+			break;
+		case 'upyun':
+			$name = '又拍云';
+			$config = ['serviceName' => $get('upyun_name'), 'operatorName' => $get('upyun_user'), 'operatorPwd' => $get('upyun_pwd')] + $cloud;
+			break;
+		case 'qiniu':
+			$name = '七牛云';
+			$config = ['accessKey' => $get('qiniu_ak'), 'secretKey' => $get('qiniu_sk'), 'bucket' => $get('qiniu_bucket'), 'domain' => $get('qiniu_domain')] + $cloud;
+			break;
+		default:
+			$type = 'local';
+			$name = '本地存储';
+			$config = ['filepath' => $get('filepath')];
+			break;
+	}
+
+	$insert = $db->prepare("INSERT INTO pre_storage (name,type,config,status,isdefault,sort,addtime) VALUES (:name,:type,:config,:status,:isdefault,:sort,NOW())");
+	$json = function($config){ return json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); };
+	if(!$insert || !$insert->execute([':name'=>$name, ':type'=>$type, ':config'=>$json($config), ':status'=>1, ':isdefault'=>1, ':sort'=>0])){
+		$error++;
+		$dberror = $insert ? $insert->errorInfo() : $db->errorInfo();
+		$errorMsg.='迁移存储设置失败：'.$dberror[2].'<br>';
+		return;
+	}
+	$success++;
+	$storage_id = intval($db->lastInsertId());
+
+	//原来使用云存储的，额外添加一个未开启的本地存储，方便切换
+	if($type != 'local'){
+		if($insert->execute([':name'=>'本地存储', ':type'=>'local', ':config'=>$json(['filepath'=>'']), ':status'=>0, ':isdefault'=>0, ':sort'=>1])) $success++;
+	}
+
+	if($db->exec("UPDATE pre_file SET storage_id={$storage_id} WHERE storage_id=0")===false){
 		$error++;
 		$dberror=$db->errorInfo();
-		$errorMsg.=$dberror[2]."<br>";
+		$errorMsg.='关联已上传文件的存储失败：'.$dberror[2].'<br>';
 	}else{
 		$success++;
 	}
 }
+
+foreach($updates as $ver => $file){
+	if($version >= $ver) continue;
+	$sqls = file_get_contents(__DIR__.'/'.$file);
+	if($sqls === false) exit('更新文件 '.$file.' 不存在');
+	run_sqls(explode(';', $sqls));
+
+	if($ver == 1001){
+		if(!$db->query("SELECT v FROM pre_config WHERE k='syskey'")->fetchColumn()){
+			run_sqls(["REPLACE INTO `pre_config` VALUES ('syskey', '".random(32)."')"]);
+		}
+	}elseif($ver == 1002){
+		migrate_storage();
+	}
+
+	run_sqls(["REPLACE INTO `pre_config` VALUES ('version', '".$ver."')"]);
+	$version = $ver;
+}
+
 echo '成功执行SQL语句'.$success.'条！<br/>';
 if($errorMsg){
 //echo '<div class="alert alert-danger text-center" role="alert">'.$errorMsg.'</div>';

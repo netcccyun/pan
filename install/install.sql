@@ -5,7 +5,7 @@ create table `pre_config` (
   PRIMARY KEY  (`k`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO `pre_config` VALUES ('version', '1001');
+INSERT INTO `pre_config` VALUES ('version', '1002');
 INSERT INTO `pre_config` VALUES ('admin_user', 'admin');
 INSERT INTO `pre_config` VALUES ('admin_pwd', '123456');
 INSERT INTO `pre_config` VALUES ('blackip', '');
@@ -14,8 +14,7 @@ INSERT INTO `pre_config` VALUES ('keywords', '外链网盘,免费外链,免费�
 INSERT INTO `pre_config` VALUES ('description', '彩虹外链网盘提供大容量云存储服务');
 INSERT INTO `pre_config` VALUES ('iptype', '0');
 INSERT INTO `pre_config` VALUES ('filesearch', '1');
-INSERT INTO `pre_config` VALUES ('storage', 'local');
-INSERT INTO `pre_config` VALUES ('filepath', '');
+INSERT INTO `pre_config` VALUES ('upload_choose_storage', '0');
 INSERT INTO `pre_config` VALUES ('aliyun_ak', '');
 INSERT INTO `pre_config` VALUES ('aliyun_sk', '');
 INSERT INTO `pre_config` VALUES ('name_block', '');
@@ -46,9 +45,11 @@ CREATE TABLE `pre_file` (
   `block` int(1) NOT NULL DEFAULT '0',
   `count` int(11) unsigned NOT NULL DEFAULT '0',
   `uid` int(11) unsigned NOT NULL DEFAULT '0',
+  `storage_id` int(11) unsigned NOT NULL DEFAULT '0',
    PRIMARY KEY (`id`),
    KEY `hash` (`hash`),
-   KEY `uid` (`uid`)
+   KEY `uid` (`uid`),
+   KEY `storage_id` (`storage_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `pre_user`;
@@ -67,3 +68,18 @@ CREATE TABLE `pre_user` (
   PRIMARY KEY (`uid`),
   KEY `openid` (`openid`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=1000;
+
+DROP TABLE IF EXISTS `pre_storage`;
+CREATE TABLE `pre_storage` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `type` varchar(30) NOT NULL,
+  `config` text NULL,
+  `status` tinyint(1) NOT NULL DEFAULT '1',
+  `isdefault` tinyint(1) NOT NULL DEFAULT '0',
+  `sort` int(11) NOT NULL DEFAULT '0',
+  `addtime` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `pre_storage` (`id`,`name`,`type`,`config`,`status`,`isdefault`,`sort`,`addtime`) VALUES (1, '本地存储', 'local', '{"filepath":""}', 1, 1, 0, NOW());

@@ -1,0 +1,1 @@
+import"./8Yg1WSBA.js";import{B as e,m as t,x as n}from"./BvqZR4te.js";var r=n({__name:`index`,setup(n){return(n,r)=>(e(),t(`div`))}});export{r as default};
