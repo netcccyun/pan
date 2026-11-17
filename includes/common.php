@@ -11,7 +11,6 @@ $date = date("Y-m-d H:i:s");
 
 if(!$nosession)session_start();
 
-include_once(SYSTEM_ROOT.'txprotect.php');
 include_once(SYSTEM_ROOT."autoloader.php");
 Autoloader::register();
 
